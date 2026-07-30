@@ -2,18 +2,27 @@ package com.innuva.schoolmanagementsystem.service;
 
 import com.innuva.schoolmanagementsystem.dto.StudentResponse;
 import com.innuva.schoolmanagementsystem.entity.Student;
+import com.innuva.schoolmanagementsystem.exception.ResourceNotFoundException;
 import com.innuva.schoolmanagementsystem.repository.SchoolClassRepository;
 import com.innuva.schoolmanagementsystem.entity.SchoolClass;
 import com.innuva.schoolmanagementsystem.repository.StudentRepository;
 import com.innuva.schoolmanagementsystem.dto.StudentRequest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.innuva.schoolmanagementsystem.dto.PagedResponse;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class StudentService {
+
+    private static final List<String> ALLOWED_SORT_FIELDS =
+            List.of("id", "name");
+
+
 
     private final StudentRepository studentRepository;
     private final SchoolClassRepository schoolClassRepository;
@@ -26,20 +35,128 @@ public class StudentService {
         this.schoolClassRepository = schoolClassRepository;
     }
 
-    public List<StudentResponse> getStudents() {
 
-        return studentRepository
-                .findAll()
-                .stream()
-                .map(this::toStudentResponse)
-                .toList();
+    public PagedResponse<StudentResponse> getStudents(
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Invalid sort field. Allowed values: "
+                            + ALLOWED_SORT_FIELDS
+            );
+        }
+
+        if (!direction.equalsIgnoreCase("asc")
+                && !direction.equalsIgnoreCase("desc")) {
+
+            throw new IllegalArgumentException(
+                    "Invalid sort direction. Allowed values: asc, desc"
+            );
+        }
+
+        Sort sort;
+
+        if (direction.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        } else {
+            sort = Sort.by(sortBy).ascending();
+        }
+
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        Page<Student> studentPage =
+                studentRepository.findAll(pageable);
+
+        List<StudentResponse> content =
+                studentPage
+                        .getContent()
+                        .stream()
+                        .map(this::toStudentResponse)
+                        .toList();
+
+        return new PagedResponse<>(
+                content,
+                studentPage.getNumber(),
+                studentPage.getSize(),
+                studentPage.getTotalElements(),
+                studentPage.getTotalPages(),
+                studentPage.isFirst(),
+                studentPage.isLast()
+        );
     }
+
+
+    public PagedResponse<StudentResponse> searchStudents(
+            String name,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    "Invalid sort field. Allowed values: "
+                            + ALLOWED_SORT_FIELDS
+            );
+        }
+
+        if (!direction.equalsIgnoreCase("asc")
+                && !direction.equalsIgnoreCase("desc")) {
+
+            throw new IllegalArgumentException(
+                    "Invalid sort direction. Allowed values: asc, desc"
+            );
+        }
+
+        Sort sort;
+
+        if (direction.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        } else {
+            sort = Sort.by(sortBy).ascending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Student> studentPage =
+                studentRepository.findByNameContainingIgnoreCase(
+                        name,
+                        pageable
+                );
+
+        List<StudentResponse> content =
+                studentPage.getContent()
+                        .stream()
+                        .map(this::toStudentResponse)
+                        .toList();
+
+        return new PagedResponse<>(
+                content,
+                studentPage.getNumber(),
+                studentPage.getSize(),
+                studentPage.getTotalElements(),
+                studentPage.getTotalPages(),
+                studentPage.isFirst(),
+                studentPage.isLast()
+        );
+    }
+
+
 
     public StudentResponse saveStudent(StudentRequest request) {
 
         SchoolClass schoolClass = schoolClassRepository
                 .findById(request.getClassId())
-                .orElseThrow(() -> new RuntimeException("Class not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Class not found with id: " + request.getClassId()
+                        )
+                );
 
         Student student = new Student();
 
@@ -51,31 +168,39 @@ public class StudentService {
         return toStudentResponse(savedStudent);
     }
 
-    public Optional<StudentResponse> getStudentById(Long id) {
+    public StudentResponse getStudentById(Long id) {
 
-        return studentRepository
+        Student student = studentRepository
                 .findById(id)
-                .map(this::toStudentResponse);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Student not found with id: " + id
+                        )
+                );
+
+        return toStudentResponse(student);
     }
 
-    public Optional<StudentResponse> updateStudent(
+    public StudentResponse updateStudent(
             Long id,
-            StudentRequest request) {
-
-        Optional<Student> optionalStudent =
-                studentRepository.findById(id);
-
-        if (optionalStudent.isEmpty()) {
-            return Optional.empty();
-        }
+            StudentRequest request
+    ) {
+        Student existingStudent = studentRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Student not found with id: " + id
+                        )
+                );
 
         SchoolClass schoolClass = schoolClassRepository
                 .findById(request.getClassId())
                 .orElseThrow(() ->
-                        new RuntimeException("Class not found")
+                        new ResourceNotFoundException(
+                                "Class not found with id: "
+                                        + request.getClassId()
+                        )
                 );
-
-        Student existingStudent = optionalStudent.get();
 
         existingStudent.setName(request.getName());
         existingStudent.setSchoolClass(schoolClass);
@@ -83,22 +208,20 @@ public class StudentService {
         Student savedStudent =
                 studentRepository.save(existingStudent);
 
-        return Optional.of(
-                toStudentResponse(savedStudent)
-        );
+        return toStudentResponse(savedStudent);
     }
 
-    public boolean deleteStudent(Long id) {
+    public void deleteStudent(Long id) {
 
-        Optional<Student> student = studentRepository.findById(id);
+        Student student = studentRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Student not found with id: " + id
+                        )
+                );
 
-        if (student.isEmpty()) {
-            return false;
-        }
-
-        studentRepository.delete(student.get());
-
-        return true;
+        studentRepository.delete(student);
     }
 
     private StudentResponse toStudentResponse(Student student) {
@@ -112,4 +235,8 @@ public class StudentService {
                 schoolClass.getName()
         );
     }
+
+
+
+
 }

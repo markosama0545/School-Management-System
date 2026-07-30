@@ -1,9 +1,17 @@
 package com.innuva.schoolmanagementsystem.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class StudentRequest {
 
+    @NotBlank(message = "Student name is required")
     private String name;
 
+
+    @NotNull(message = "Class ID is required")
+    @Positive(message = "Class ID must be greater than zero")
     private Long classId;
 
     public StudentRequest() {
