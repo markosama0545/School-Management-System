@@ -23,87 +23,91 @@ public class StudentController {
 
     @GetMapping
     public ResponseEntity<PagedResponse<StudentResponse>> getStudents(
+            @RequestHeader("X-User-Id") Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
     ) {
-        PagedResponse<StudentResponse> response =
+        return ResponseEntity.ok(
                 studentService.getStudents(
+                        userId,
                         page,
                         size,
                         sortBy,
                         direction
-                );
-
-        return ResponseEntity.ok(response);
+                )
+        );
     }
 
     @PostMapping
     public ResponseEntity<StudentResponse> saveStudent(
-            @Valid @RequestBody StudentRequest request) {
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody StudentRequest request
+    ) {
+        StudentResponse response =
+                studentService.saveStudent(userId, request);
 
-        StudentResponse response = studentService.saveStudent(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<StudentResponse> getStudentById(
+            @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long id
     ) {
-        StudentResponse response = studentService.getStudentById(id);
+        StudentResponse response =
+                studentService.getStudentById(userId, id);
 
         return ResponseEntity.ok(response);
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<StudentResponse> updateStudent(
+            @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long id,
             @Valid @RequestBody StudentRequest request
     ) {
-        StudentResponse response =
-                studentService.updateStudent(id, request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                studentService.updateStudent(
+                        userId,
+                        id,
+                        request
+                )
+        );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStudent(
+            @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long id
     ) {
-        studentService.deleteStudent(id);
+        studentService.deleteStudent(userId, id);
 
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/search")
     public ResponseEntity<PagedResponse<StudentResponse>> searchStudents(
-
+            @RequestHeader("X-User-Id") Long userId,
             @RequestParam String name,
-
-            @RequestParam(defaultValue = "0")
-            int page,
-
-            @RequestParam(defaultValue = "5")
-            int size,
-
-            @RequestParam(defaultValue = "id")
-            String sortBy,
-
-            @RequestParam(defaultValue = "asc")
-            String direction
-
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
     ) {
-
-        PagedResponse<StudentResponse> response =
+        return ResponseEntity.ok(
                 studentService.searchStudents(
+                        userId,
                         name,
                         page,
                         size,
                         sortBy,
                         direction
-                );
-
-        return ResponseEntity.ok(response);
+                )
+        );
     }
+
 }

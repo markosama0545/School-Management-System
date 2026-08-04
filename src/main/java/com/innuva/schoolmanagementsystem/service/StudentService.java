@@ -26,22 +26,27 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final SchoolClassRepository schoolClassRepository;
+    private final UserBehavior userBehavior;
 
     public StudentService(
             StudentRepository studentRepository,
-            SchoolClassRepository schoolClassRepository
+            SchoolClassRepository schoolClassRepository,
+            UserBehavior userBehavior
     ) {
         this.studentRepository = studentRepository;
         this.schoolClassRepository = schoolClassRepository;
+        this.userBehavior = userBehavior;
     }
 
 
     public PagedResponse<StudentResponse> getStudents(
+            Long userId,
             int page,
             int size,
             String sortBy,
             String direction
     ) {
+        userBehavior.requireCanViewStudent(userId);
         if (!ALLOWED_SORT_FIELDS.contains(sortBy.toLowerCase())) {
             throw new IllegalArgumentException(
                     "Invalid sort field. Allowed values: "
@@ -91,12 +96,14 @@ public class StudentService {
 
 
     public PagedResponse<StudentResponse> searchStudents(
+            Long userId,
             String name,
             int page,
             int size,
             String sortBy,
             String direction
     ) {
+        userBehavior.requireCanViewStudent(userId);
 
         if (!ALLOWED_SORT_FIELDS.contains(sortBy.toLowerCase())) {
             throw new IllegalArgumentException(
@@ -148,7 +155,9 @@ public class StudentService {
 
 
 
-    public StudentResponse saveStudent(StudentRequest request) {
+    public StudentResponse saveStudent( Long userId,
+                                        StudentRequest request) {
+        userBehavior.requireCanAddStudent(userId);
 
         SchoolClass schoolClass = schoolClassRepository
                 .findById(request.getClassId())
@@ -168,7 +177,11 @@ public class StudentService {
         return toStudentResponse(savedStudent);
     }
 
-    public StudentResponse getStudentById(Long id) {
+    public StudentResponse getStudentById(
+            Long userId,
+            Long id
+    ) {
+        userBehavior.requireCanViewStudent(userId);
 
         Student student = studentRepository
                 .findById(id)
@@ -182,9 +195,12 @@ public class StudentService {
     }
 
     public StudentResponse updateStudent(
+            Long userId,
             Long id,
             StudentRequest request
     ) {
+        userBehavior.requireCanEditStudent(userId);
+
         Student existingStudent = studentRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -211,7 +227,9 @@ public class StudentService {
         return toStudentResponse(savedStudent);
     }
 
-    public void deleteStudent(Long id) {
+    public void deleteStudent(Long userId, Long id) {
+
+        userBehavior.requireCanDeleteStudent(userId);
 
         Student student = studentRepository
                 .findById(id)

@@ -1,11 +1,10 @@
 package com.innuva.schoolmanagementsystem.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "students")
-public class Student {
+@Table(name = "teachers")
+public class Teacher {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,27 +14,30 @@ public class Student {
     @Column(name = "Name")
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ClassId")
-    @JsonBackReference
-    private SchoolClass schoolClass;
+    @Column(name = "Phone")
+    private String phone;
+
+    @Column(name = "Email")
+    private String email;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "UserId")
     private User user;
 
-    public Student() {
+    public Teacher() {
     }
 
-    public Student(
+    public Teacher(
             Long id,
             String name,
-            SchoolClass schoolClass,
+            String phone,
+            String email,
             User user
     ) {
         this.id = id;
         this.name = name;
-        this.schoolClass = schoolClass;
+        this.phone = phone;
+        this.email = email;
         this.user = user;
     }
 
@@ -47,8 +49,12 @@ public class Student {
         return name;
     }
 
-    public SchoolClass getSchoolClass() {
-        return schoolClass;
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public User getUser() {
@@ -63,8 +69,12 @@ public class Student {
         this.name = name;
     }
 
-    public void setSchoolClass(SchoolClass schoolClass) {
-        this.schoolClass = schoolClass;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setUser(User user) {

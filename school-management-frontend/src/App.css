@@ -1,0 +1,59 @@
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  margin-bottom: 8px;
+}
+
+.user-selector {
+  margin: 20px 0;
+}
+
+.user-selector label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.user-selector select {
+  padding: 8px;
+  font-size: 16px;
+}
+
+.rights-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+.rights-section p {
+  margin: 8px 0;
+}
+
+.students-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background: #f0f2f5;
+}
