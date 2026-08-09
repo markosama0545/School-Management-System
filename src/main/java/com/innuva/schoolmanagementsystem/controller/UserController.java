@@ -43,6 +43,26 @@ public class UserController {
                 userBehavior.canDeleteStudent(userId)
         );
 
+        rights.put(
+                "CanViewClass",
+                userBehavior.canViewClass(userId)
+        );
+
+        rights.put(
+                "CanAddClass",
+                userBehavior.canAddClass(userId)
+        );
+
+        rights.put(
+                "CanEditClass",
+                userBehavior.canEditClass(userId)
+        );
+
+        rights.put(
+                "CanDeleteClass",
+                userBehavior.canDeleteClass(userId)
+        );
+
         return ResponseEntity.ok(rights);
     }
 }

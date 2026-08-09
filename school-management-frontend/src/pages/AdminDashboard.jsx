@@ -13,6 +13,12 @@ import {
     updateStudent,
     deleteStudent
 } from "../api/studentApi";
+import {
+    getClasses,
+    createClass,
+    updateClass,
+    deleteClass
+} from "../api/classApi";
 
 function AdminDashboard({currentUser, onLogout}) {
     const [openSection, setOpenSection] = useState(null);
@@ -63,6 +69,20 @@ function AdminDashboard({currentUser, onLogout}) {
     const [teacherToDelete, setTeacherToDelete] = useState(null);
     const [deletingTeacher, setDeletingTeacher] = useState(false);
 
+    // Classes state
+    const [classes, setClasses] = useState([]);
+    const [classesLoading, setClassesLoading] = useState(false);
+    const [classesError, setClassesError] = useState("");
+    const [showAddClassForm, setShowAddClassForm] = useState(false);
+    const [newClass, setNewClass] = useState({ name: "" });
+    const [addingClass, setAddingClass] = useState(false);
+    const [editingClassId, setEditingClassId] = useState(null);
+    const [editingClass, setEditingClass] = useState({ name: "" });
+    const [savingClassEdit, setSavingClassEdit] = useState(false);
+    const [classToDelete, setClassToDelete] = useState(null);
+    const [deletingClass, setDeletingClass] = useState(false);
+    const [classSuccessMessage, setClassSuccessMessage] = useState("");
+
 
     useEffect(() => {
         if (openSection === "students") {
@@ -71,6 +91,10 @@ function AdminDashboard({currentUser, onLogout}) {
 
         if (openSection === "teachers") {
             loadTeachers();
+        }
+
+        if (openSection === "classes") {
+            loadClasses();
         }
     }, [openSection]);
 
@@ -122,8 +146,14 @@ function AdminDashboard({currentUser, onLogout}) {
 
         setOpenClassName(null);
 
+        // Reset student state
         setShowAddStudentForm(false);
+        setEditingStudentId(null);
+        setEditingStudent({ name: "", classId: "" });
+        setStudentToDelete(null);
+        setStudentSuccessMessage("");
 
+        // Reset teacher state
         setShowAddTeacherForm(false);
         setNewTeacher({
             name: "",
@@ -132,6 +162,18 @@ function AdminDashboard({currentUser, onLogout}) {
             username: "",
             password: ""
         });
+        setEditingTeacherId(null);
+        setEditingTeacher({ name: "", phone: "", email: "" });
+        setTeacherToDelete(null);
+        setTeacherSuccessMessage("");
+
+        // Reset class state
+        setShowAddClassForm(false);
+        setNewClass({ name: "" });
+        setEditingClassId(null);
+        setEditingClass({ name: "" });
+        setClassToDelete(null);
+        setClassSuccessMessage("");
     }
 
 
@@ -467,6 +509,110 @@ function AdminDashboard({currentUser, onLogout}) {
             );
         } finally {
             setDeletingTeacher(false);
+        }
+    }
+
+    async function loadClasses() {
+        try {
+            setClassesLoading(true);
+            setClassesError("");
+            const data = await getClasses(currentUser.userId);
+            setClasses(data);
+        } catch (error) {
+            console.error(error);
+            setClassesError("Could not load classes.");
+        } finally {
+            setClassesLoading(false);
+        }
+    }
+
+    async function handleAddClass() {
+        if (newClass.name.trim() === "") {
+            alert("Please fill in the class name.");
+            return;
+        }
+
+        try {
+            setAddingClass(true);
+            setClassSuccessMessage("");
+
+            await createClass(currentUser.userId, {
+                name: newClass.name.trim()
+            });
+
+            await loadClasses();
+
+            setClassSuccessMessage("Class added successfully!");
+            resetClassForm();
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not add class.";
+            alert(message);
+        } finally {
+            setAddingClass(false);
+        }
+    }
+
+    function resetClassForm() {
+        setShowAddClassForm(false);
+        setNewClass({ name: "" });
+    }
+
+    function startEditingClass(cls) {
+        setEditingClassId(cls.id);
+        setEditingClass({ name: cls.name });
+        setShowAddClassForm(false);
+    }
+
+    async function handleSaveClassEdit(classId) {
+        if (editingClass.name.trim() === "") {
+            alert("Please enter the class name.");
+            return;
+        }
+
+        try {
+            setSavingClassEdit(true);
+            setClassSuccessMessage("");
+
+            await updateClass(currentUser.userId, classId, {
+                name: editingClass.name.trim()
+            });
+
+            await loadClasses();
+
+            setClassSuccessMessage("Class updated successfully!");
+            setEditingClassId(null);
+            setEditingClass({ name: "" });
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not update class.";
+            alert(message);
+        } finally {
+            setSavingClassEdit(false);
+        }
+    }
+
+    async function handleDeleteClass() {
+        if (!classToDelete) {
+            return;
+        }
+
+        try {
+            setDeletingClass(true);
+            setClassSuccessMessage("");
+
+            await deleteClass(currentUser.userId, classToDelete.id);
+
+            await loadClasses();
+
+            setClassSuccessMessage("Class deleted successfully!");
+            setClassToDelete(null);
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not delete class.";
+            alert(message);
+        } finally {
+            setDeletingClass(false);
         }
     }
 
@@ -1004,13 +1150,147 @@ function AdminDashboard({currentUser, onLogout}) {
                     className="admin-card-button"
                     onClick={() => toggleSection("classes")}
                 >
-                    <span>Classes</span>
+                    <span>Classes Management</span>
                     <span>{openSection === "classes" ? "▲" : "▼"}</span>
                 </button>
 
                 {openSection === "classes" && (
                     <div className="admin-card-content">
-                        <p>Classes overview will appear here.</p>
+                        {classSuccessMessage && (
+                            <p className="success-message">
+                                {classSuccessMessage}
+                            </p>
+                        )}
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={() => {
+                                setShowAddClassForm((currentValue) => !currentValue);
+                            }}
+                        >
+                            {showAddClassForm
+                                ? "Close Add Class Form"
+                                : "+ Add Class"}
+                        </button>
+
+                        {showAddClassForm && (
+                            <div className="add-student-form">
+                                <h3>Add New Class</h3>
+
+                                <label>
+                                    Class Name
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={newClass.name}
+                                        onChange={(e) => setNewClass({ name: e.target.value })}
+                                    />
+                                </label>
+
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        onClick={handleAddClass}
+                                        disabled={addingClass}
+                                    >
+                                        {addingClass ? "Saving..." : "Save Class"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={resetClassForm}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {classesLoading ? (
+                            <p>Loading classes...</p>
+                        ) : classesError ? (
+                            <p>{classesError}</p>
+                        ) : classes.length === 0 ? (
+                            <p>No classes found.</p>
+                        ) : (
+                            <table className="students-table">
+                                <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Class Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+
+                                <tbody>
+                                {[...classes]
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((cls, index) => (
+                                        <tr key={cls.id}>
+                                            <td>{index + 1}</td>
+                                            <td>
+                                                {editingClassId === cls.id ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editingClass.name}
+                                                        onChange={(event) =>
+                                                            setEditingClass({
+                                                                name: event.target.value
+                                                            })
+                                                        }
+                                                    />
+                                                ) : (
+                                                    cls.name
+                                                )}
+                                            </td>
+
+                                            <td className="student-actions">
+                                                {editingClassId === cls.id ? (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            disabled={savingClassEdit}
+                                                            onClick={() => handleSaveClassEdit(cls.id)}
+                                                        >
+                                                            {savingClassEdit ? "Saving..." : "Save"}
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setEditingClassId(null);
+                                                                setEditingClass({ name: "" });
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="edit-button"
+                                                            onClick={() => startEditingClass(cls)}
+                                                        >
+                                                            Edit
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="delete-button"
+                                                            onClick={() => setClassToDelete(cls)}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 )}
             </section>
@@ -1100,6 +1380,42 @@ function AdminDashboard({currentUser, onLogout}) {
                                 Cancel
                             </button>
 
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {classToDelete && (
+                <div className="modal-overlay">
+                    <div className="confirm-modal">
+                        <h3>Delete Class</h3>
+
+                        <p>
+                            Are you sure you want to delete{" "}
+                            <strong>{classToDelete.name}</strong>?
+                        </p>
+
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                className="delete-button"
+                                onClick={handleDeleteClass}
+                                disabled={deletingClass}
+                            >
+                                {deletingClass
+                                    ? "Deleting..."
+                                    : "Yes, Delete"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setClassToDelete(null)
+                                }
+                                disabled={deletingClass}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>

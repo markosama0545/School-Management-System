@@ -70,4 +70,52 @@ public class UserBehavior {
             );
         }
     }
+
+    public boolean canViewClass(Long userId) {
+        return hasRight(userId, "CanViewClass");
+    }
+
+    public boolean canAddClass(Long userId) {
+        return hasRight(userId, "CanAddClass");
+    }
+
+    public boolean canEditClass(Long userId) {
+        return hasRight(userId, "CanEditClass");
+    }
+
+    public boolean canDeleteClass(Long userId) {
+        return hasRight(userId, "CanDeleteClass");
+    }
+
+    public void requireCanViewClass(Long userId) {
+        if (!canViewClass(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to view classes"
+            );
+        }
+    }
+
+    public void requireCanAddClass(Long userId) {
+        if (!canAddClass(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to add classes"
+            );
+        }
+    }
+
+    public void requireCanEditClass(Long userId) {
+        if (!canEditClass(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to edit classes"
+            );
+        }
+    }
+
+    public void requireCanDeleteClass(Long userId) {
+        if (!canDeleteClass(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to delete classes"
+            );
+        }
+    }
 }
