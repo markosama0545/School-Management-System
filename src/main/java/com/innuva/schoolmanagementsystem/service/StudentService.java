@@ -7,12 +7,16 @@ import com.innuva.schoolmanagementsystem.repository.SchoolClassRepository;
 import com.innuva.schoolmanagementsystem.entity.SchoolClass;
 import com.innuva.schoolmanagementsystem.repository.StudentRepository;
 import com.innuva.schoolmanagementsystem.dto.StudentRequest;
+import com.innuva.schoolmanagementsystem.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.innuva.schoolmanagementsystem.dto.PagedResponse;
+import com.innuva.schoolmanagementsystem.dto.CreateStudentRequest;
+import com.innuva.schoolmanagementsystem.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,15 +30,19 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final SchoolClassRepository schoolClassRepository;
+    private final UserRepository userRepository;
     private final UserBehavior userBehavior;
+
 
     public StudentService(
             StudentRepository studentRepository,
             SchoolClassRepository schoolClassRepository,
+            UserRepository userRepository,
             UserBehavior userBehavior
     ) {
         this.studentRepository = studentRepository;
         this.schoolClassRepository = schoolClassRepository;
+        this.userRepository = userRepository;
         this.userBehavior = userBehavior;
     }
 
@@ -176,6 +184,49 @@ public class StudentService {
 
         return toStudentResponse(savedStudent);
     }
+
+    @Transactional
+    public StudentResponse createStudentWithAccount(
+            Long adminUserId,
+            CreateStudentRequest request
+    ) {
+        userBehavior.requireCanAddStudent(adminUserId);
+
+        String username = request.getUsername().trim();
+
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
+            throw new IllegalArgumentException(
+                    "Username already exists: " + username
+            );
+        }
+
+        SchoolClass schoolClass = schoolClassRepository
+                .findById(request.getClassId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Class not found with id: "
+                                        + request.getClassId()
+                        )
+                );
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(request.getPassword());
+        user.setRoleId(3L);
+
+        User savedUser = userRepository.save(user);
+
+        Student student = new Student();
+        student.setName(request.getName().trim());
+        student.setSchoolClass(schoolClass);
+        student.setUser(savedUser);
+
+        Student savedStudent = studentRepository.save(student);
+
+        return toStudentResponse(savedStudent);
+    }
+
+
 
     public StudentResponse getStudentById(
             Long userId,

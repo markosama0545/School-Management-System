@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.innuva.schoolmanagementsystem.dto.CreateStudentRequest;
 
 
 @RestController
@@ -39,6 +40,24 @@ public class StudentController {
                 )
         );
     }
+
+    @PostMapping("/with-account")
+    public ResponseEntity<StudentResponse> createStudentWithAccount(
+            @RequestHeader("X-User-Id") Long adminUserId,
+            @Valid @RequestBody CreateStudentRequest request
+    ) {
+        StudentResponse response =
+                studentService.createStudentWithAccount(
+                        adminUserId,
+                        request
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+
 
     @PostMapping
     public ResponseEntity<StudentResponse> saveStudent(

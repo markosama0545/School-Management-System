@@ -1,11 +1,11 @@
 import axios from "axios";
+import {API_BASE_URL} from "./apiConfig";
 
 const api = axios.create({
-    baseURL: "http://localhost:8080/api"
+    baseURL: API_BASE_URL
 });
 
 export async function getUserRights(userId) {
-
     const response = await api.get(
         `/users/${userId}/rights`
     );
@@ -29,13 +29,7 @@ export async function getStudents(userId) {
     return response.data;
 }
 
-export async function deleteStudent(userId, studentId) {
-    await api.delete(`/students/${studentId}`, {
-        headers: {
-            "X-User-Id": userId
-        }
-    });
-}
+
 
 export async function login(username, password) {
     const response = await api.post("/auth/login", {
@@ -47,14 +41,65 @@ export async function login(username, password) {
 }
 
 export async function getStudentDashboard(userId) {
-    const response = await api.get("/student-dashboard", {
-        headers: {
-            "X-User-Id": userId
+    const response = await api.get(
+        "/student-dashboard",
+        {
+            headers: {
+                "X-User-Id": userId
+            }
         }
-    });
+    );
 
     return response.data;
 }
 
-export default api;
 
+export async function addStudentWithAccount(
+    userId,
+    studentData
+) {
+    const response = await api.post(
+        "/students/with-account",
+        studentData,
+        {
+            headers: {
+                "X-User-Id": userId
+            }
+        }
+    );
+
+    return response.data;
+}
+
+
+export async function updateStudent(
+    userId,
+    studentId,
+    studentData
+) {
+    const response = await api.put(
+        `/students/${studentId}`,
+        studentData,
+        {
+            headers: {
+                "X-User-Id": userId
+            }
+        }
+    );
+
+    return response.data;
+}
+
+export async function deleteStudent(userId, studentId) {
+    await api.delete(
+        `/students/${studentId}`,
+        {
+            headers: {
+                "X-User-Id": userId
+            }
+        }
+    );
+}
+
+
+export default api;

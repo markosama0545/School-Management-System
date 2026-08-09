@@ -57,3 +57,214 @@ td {
 th {
   background: #f0f2f5;
 }
+
+.success-message {
+  color: green;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.accordion-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.course-button {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.class-button {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.course-content {
+  margin-left: 20px;
+}
+
+.teacher-class table {
+  margin-top: 10px;
+}
+
+
+.admin-card {
+  margin: 16px 0;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-card-button {
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.admin-card-content {
+  padding: 16px;
+  border-top: 1px solid #cccccc;
+}
+
+.class-group {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #d8dce3;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.class-title {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.students-table th,
+.students-table td {
+  padding: 13px 15px;
+  border-bottom: 1px solid #e2e5e9;
+  text-align: left;
+}
+
+.students-table th {
+  background: #f1f3f6;
+  font-weight: 700;
+}
+
+.students-table tbody tr:hover {
+  background: #f7f8fa;
+}
+
+.students-table th:first-child,
+.students-table td:first-child {
+  width: 70px;
+  text-align: center;
+}
+
+.student-actions {
+  width: 180px;
+}
+
+.student-actions button {
+  margin-right: 8px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-button {
+  border: 1px solid #777777;
+}
+
+.delete-button {
+  border: 1px solid #a94442;
+}
+
+.class-accordion-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border: none;
+  background: #f3f4f6;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: left;
+}
+
+.class-accordion-button:hover {
+  background: #e9ecef;
+}
+
+.class-group {
+  margin-top: 14px;
+  border: 1px solid #d8dce3;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.class-group .students-table {
+  margin: 0;
+}
+
+.add-student-button {
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-student-form {
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid #d8dce3;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.add-student-form label {
+  display: block;
+  margin-bottom: 14px;
+  font-weight: bold;
+}
+
+.add-student-form input,
+.add-student-form select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 9px;
+  box-sizing: border-box;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1000;
+}
+
+.confirm-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  min-width: 350px;
+  max-width: 450px;
+}
+
+.confirm-modal h3 {
+  margin-top: 0;
+}

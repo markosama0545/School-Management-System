@@ -2,6 +2,8 @@ import { useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import StudentDashboard from "./pages/StudentDashboard";
 import "./App.css";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -13,6 +15,24 @@ function App() {
     if (currentUser.roleName === "Student") {
         return (
             <StudentDashboard
+                currentUser={currentUser}
+                onLogout={() => setCurrentUser(null)}
+            />
+        );
+    }
+
+    if (currentUser.roleName === "Teacher") {
+        return (
+            <TeacherDashboard
+                currentUser={currentUser}
+                onLogout={() => setCurrentUser(null)}
+            />
+        );
+    }
+
+    if (currentUser.roleName === "Admin") {
+        return (
+            <AdminDashboard
                 currentUser={currentUser}
                 onLogout={() => setCurrentUser(null)}
             />
@@ -31,5 +51,8 @@ function App() {
         </main>
     );
 }
+
+
+
 
 export default App;
