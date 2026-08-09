@@ -19,6 +19,12 @@ import {
     updateClass,
     deleteClass
 } from "../api/classApi";
+import {
+    getCourses,
+    createCourse,
+    updateCourse,
+    deleteCourse
+} from "../api/courseApi";
 
 function AdminDashboard({currentUser, onLogout}) {
     const [openSection, setOpenSection] = useState(null);
@@ -83,6 +89,21 @@ function AdminDashboard({currentUser, onLogout}) {
     const [deletingClass, setDeletingClass] = useState(false);
     const [classSuccessMessage, setClassSuccessMessage] = useState("");
 
+    // Courses state
+    const [courses, setCourses] = useState([]);
+    const [coursesLoading, setCoursesLoading] = useState(false);
+    const [coursesError, setCoursesError] = useState("");
+    const [showAddCourseForm, setShowAddCourseForm] = useState(false);
+    const [newCourse, setNewCourse] = useState({ name: "", teacherId: "", classIds: [] });
+    const [addingCourse, setAddingCourse] = useState(false);
+    const [editingCourseId, setEditingCourseId] = useState(null);
+    const [editingCourse, setEditingCourse] = useState({ name: "", teacherId: "", classIds: [] });
+    const [savingCourseEdit, setSavingCourseEdit] = useState(false);
+    const [courseToDelete, setCourseToDelete] = useState(null);
+    const [deletingCourse, setDeletingCourse] = useState(false);
+    const [courseSuccessMessage, setCourseSuccessMessage] = useState("");
+    const [expandedCourseId, setExpandedCourseId] = useState(null);
+
 
     useEffect(() => {
         if (openSection === "students") {
@@ -94,6 +115,13 @@ function AdminDashboard({currentUser, onLogout}) {
         }
 
         if (openSection === "classes") {
+            loadClasses();
+        }
+
+        if (openSection === "courses") {
+            loadCourses();
+            // Teachers and classes are needed for dropdowns/checkboxes
+            loadTeachers();
             loadClasses();
         }
     }, [openSection]);
@@ -174,6 +202,15 @@ function AdminDashboard({currentUser, onLogout}) {
         setEditingClass({ name: "" });
         setClassToDelete(null);
         setClassSuccessMessage("");
+
+        // Reset course state
+        setShowAddCourseForm(false);
+        setNewCourse({ name: "", teacherId: "", classIds: [] });
+        setEditingCourseId(null);
+        setEditingCourse({ name: "", teacherId: "", classIds: [] });
+        setCourseToDelete(null);
+        setCourseSuccessMessage("");
+        setExpandedCourseId(null);
     }
 
 
@@ -613,6 +650,142 @@ function AdminDashboard({currentUser, onLogout}) {
             alert(message);
         } finally {
             setDeletingClass(false);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Courses handlers
+    // -----------------------------------------------------------------------
+
+    async function loadCourses() {
+        try {
+            setCoursesLoading(true);
+            setCoursesError("");
+            const data = await getCourses(currentUser.userId);
+            setCourses(data);
+        } catch (error) {
+            console.error(error);
+            setCoursesError("Could not load courses.");
+        } finally {
+            setCoursesLoading(false);
+        }
+    }
+
+    function resetCourseForm() {
+        setShowAddCourseForm(false);
+        setNewCourse({ name: "", teacherId: "", classIds: [] });
+    }
+
+    function toggleCourseClassId(classId, isAdd, setter) {
+        setter((current) => ({
+            ...current,
+            classIds: isAdd
+                ? [...current.classIds, classId]
+                : current.classIds.filter((id) => id !== classId)
+        }));
+    }
+
+    async function handleAddCourse() {
+        if (newCourse.name.trim() === "") {
+            alert("Please enter the course name.");
+            return;
+        }
+
+        if (newCourse.teacherId === "") {
+            alert("Please select a teacher.");
+            return;
+        }
+
+        try {
+            setAddingCourse(true);
+            setCourseSuccessMessage("");
+
+            await createCourse(currentUser.userId, {
+                name: newCourse.name.trim(),
+                teacherId: Number(newCourse.teacherId),
+                classIds: newCourse.classIds
+            });
+
+            await loadCourses();
+
+            setCourseSuccessMessage("Course added successfully!");
+            resetCourseForm();
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not add course.";
+            alert(message);
+        } finally {
+            setAddingCourse(false);
+        }
+    }
+
+    function startEditingCourse(course) {
+        setEditingCourseId(course.id);
+        setEditingCourse({
+            name: course.name,
+            teacherId: course.teacherId ? String(course.teacherId) : "",
+            classIds: course.classIds ? [...course.classIds] : []
+        });
+        setShowAddCourseForm(false);
+        setExpandedCourseId(course.id);
+    }
+
+    async function handleSaveCourseEdit(courseId) {
+        if (editingCourse.name.trim() === "") {
+            alert("Please enter the course name.");
+            return;
+        }
+
+        if (editingCourse.teacherId === "") {
+            alert("Please select a teacher.");
+            return;
+        }
+
+        try {
+            setSavingCourseEdit(true);
+            setCourseSuccessMessage("");
+
+            await updateCourse(currentUser.userId, courseId, {
+                name: editingCourse.name.trim(),
+                teacherId: Number(editingCourse.teacherId),
+                classIds: editingCourse.classIds
+            });
+
+            await loadCourses();
+
+            setCourseSuccessMessage("Course updated successfully!");
+            setEditingCourseId(null);
+            setEditingCourse({ name: "", teacherId: "", classIds: [] });
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not update course.";
+            alert(message);
+        } finally {
+            setSavingCourseEdit(false);
+        }
+    }
+
+    async function handleDeleteCourse() {
+        if (!courseToDelete) {
+            return;
+        }
+
+        try {
+            setDeletingCourse(true);
+            setCourseSuccessMessage("");
+
+            await deleteCourse(currentUser.userId, courseToDelete.id);
+
+            await loadCourses();
+
+            setCourseSuccessMessage("Course deleted successfully!");
+            setCourseToDelete(null);
+        } catch (error) {
+            console.error(error);
+            const message = error.response?.data?.message || "Could not delete course.";
+            alert(message);
+        } finally {
+            setDeletingCourse(false);
         }
     }
 
@@ -1306,7 +1479,348 @@ function AdminDashboard({currentUser, onLogout}) {
 
                 {openSection === "courses" && (
                     <div className="admin-card-content">
-                        <p>Courses management will appear here.</p>
+
+                        {courseSuccessMessage && (
+                            <p className="success-message">
+                                {courseSuccessMessage}
+                            </p>
+                        )}
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={() => {
+                                setShowAddCourseForm((current) => {
+                                    const next = !current;
+                                    if (next) {
+                                        setExpandedCourseId(null);
+                                    }
+                                    return next;
+                                });
+                            }}
+                        >
+                            {showAddCourseForm
+                                ? "Close Add Course Form"
+                                : "+ Add Course"}
+                        </button>
+
+                        {showAddCourseForm && (
+                            <div className="add-student-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <h3>Add New Course</h3>
+
+                                <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                    Course Name
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={newCourse.name}
+                                        onChange={(e) =>
+                                            setNewCourse((c) => ({ ...c, name: e.target.value }))
+                                        }
+                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px' }}
+                                    />
+                                </label>
+
+                                <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                    Teacher
+                                    <select
+                                        value={newCourse.teacherId}
+                                        onChange={(e) =>
+                                            setNewCourse((c) => ({ ...c, teacherId: e.target.value }))
+                                        }
+                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px' }}
+                                    >
+                                        <option value="" disabled>Select Teacher</option>
+                                        {[...teachers]
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map((t) => (
+                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                            ))}
+                                    </select>
+                                </label>
+
+                                {classes.length > 0 && (
+                                    <div>
+                                        <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Assign Classes</p>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                                            gap: '12px',
+                                            marginTop: '8px'
+                                        }}>
+                                            {[...classes]
+                                                .sort((a, b) => a.name.localeCompare(b.name))
+                                                .map((cls) => (
+                                                    <label
+                                                        key={cls.id}
+                                                        style={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            gap: "8px",
+                                                            fontWeight: "normal",
+                                                            cursor: 'pointer',
+                                                            userSelect: 'none'
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={newCourse.classIds.includes(cls.id)}
+                                                            onChange={(e) =>
+                                                                toggleCourseClassId(cls.id, e.target.checked, setNewCourse)
+                                                            }
+                                                            style={{ margin: 0 }}
+                                                        />
+                                                        <span style={{ lineHeight: '1' }}>{cls.name}</span>
+                                                    </label>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="form-actions" style={{ marginTop: '8px' }}>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddCourse}
+                                        disabled={addingCourse}
+                                    >
+                                        {addingCourse ? "Saving..." : "Save Course"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={resetCourseForm}
+                                        style={{ border: '1px solid #777777', background: 'transparent' }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {coursesLoading ? (
+                            <p>Loading courses...</p>
+                        ) : coursesError ? (
+                            <p>{coursesError}</p>
+                        ) : courses.length === 0 ? (
+                            <p>No courses found.</p>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                                {[...courses]
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((course) => {
+                                        const isExpanded = expandedCourseId === course.id;
+                                        const isEditing = editingCourseId === course.id;
+
+                                        return (
+                                            <div
+                                                key={course.id}
+                                                style={{
+                                                    border: '1px solid #d8dce3',
+                                                    borderRadius: '8px',
+                                                    background: '#ffffff',
+                                                    overflow: 'hidden',
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                                }}
+                                            >
+                                                {/* Collapsible Header */}
+                                                <div
+                                                    onClick={() => {
+                                                        setExpandedCourseId((prev) => {
+                                                            const next = (prev === course.id ? null : course.id);
+                                                            if (next !== null) setShowAddCourseForm(false);
+                                                            return next;
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        padding: '16px',
+                                                        cursor: 'pointer',
+                                                        background: isExpanded ? '#f8fafc' : '#ffffff',
+                                                        transition: 'background-color 0.2s ease',
+                                                        borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none'
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a202c' }}>{course.name}</span>
+                                                        <span style={{ fontSize: '14px', color: '#4a5568' }}>Teacher: {course.teacherName || "—"}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <span style={{
+                                                            fontSize: '13px',
+                                                            background: '#edf2f7',
+                                                            color: '#4a5568',
+                                                            padding: '4px 10px',
+                                                            borderRadius: '16px',
+                                                            fontWeight: '500'
+                                                        }}>
+                                                            {course.classNames ? course.classNames.length : 0} Class{(course.classNames && course.classNames.length === 1) ? '' : 'es'}
+                                                        </span>
+                                                        <span style={{ fontSize: '16px', color: '#a0aec0', fontWeight: 'bold', userSelect: 'none' }}>
+                                                            {isExpanded ? '▲' : '▼'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Collapsible Body */}
+                                                {isExpanded && (
+                                                    <div style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                                                        {isEditing ? (
+                                                            /* Redesigned Edit Form Inside Accordion Card */
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                                <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                                                    Course Name
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editingCourse.name}
+                                                                        onChange={(e) =>
+                                                                            setEditingCourse((c) => ({ ...c, name: e.target.value }))
+                                                                        }
+                                                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
+                                                                    />
+                                                                </label>
+
+                                                                <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                                                    Teacher
+                                                                    <select
+                                                                        value={editingCourse.teacherId}
+                                                                        onChange={(e) =>
+                                                                            setEditingCourse((c) => ({ ...c, teacherId: e.target.value }))
+                                                                        }
+                                                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
+                                                                    >
+                                                                        <option value="" disabled>Select Teacher</option>
+                                                                        {[...teachers]
+                                                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                                                            .map((t) => (
+                                                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                                                            ))}
+                                                                    </select>
+                                                                </label>
+
+                                                                {classes.length > 0 && (
+                                                                    <div>
+                                                                        <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Assign Classes</p>
+                                                                        <div style={{
+                                                                            display: 'grid',
+                                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                                                                            gap: '12px',
+                                                                            marginTop: '8px'
+                                                                        }}>
+                                                                            {[...classes]
+                                                                                .sort((a, b) => a.name.localeCompare(b.name))
+                                                                                .map((cls) => (
+                                                                                    <label
+                                                                                        key={cls.id}
+                                                                                        style={{
+                                                                                            display: "flex",
+                                                                                            alignItems: "center",
+                                                                                            gap: "8px",
+                                                                                            fontWeight: "normal",
+                                                                                            cursor: 'pointer',
+                                                                                            userSelect: 'none'
+                                                                                        }}
+                                                                                    >
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={editingCourse.classIds.includes(cls.id)}
+                                                                                            onChange={(e) =>
+                                                                                                toggleCourseClassId(cls.id, e.target.checked, setEditingCourse)
+                                                                                            }
+                                                                                            style={{ margin: 0 }}
+                                                                                        />
+                                                                                        <span style={{ lineHeight: '1' }}>{cls.name}</span>
+                                                                                    </label>
+                                                                                ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="form-actions" style={{ marginTop: '8px' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        disabled={savingCourseEdit}
+                                                                        onClick={() => handleSaveCourseEdit(course.id)}
+                                                                    >
+                                                                        {savingCourseEdit ? "Saving..." : "Save"}
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setEditingCourseId(null);
+                                                                            setEditingCourse({ name: "", teacherId: "", classIds: [] });
+                                                                        }}
+                                                                        style={{ border: '1px solid #777777', background: 'transparent' }}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            /* Read Mode inside Collapsible Card */
+                                                            <div>
+                                                                <div style={{ marginBottom: '16px' }}>
+                                                                    <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#4a5568', fontSize: '14px' }}>Assigned Classes</p>
+                                                                    {course.classNames && course.classNames.length > 0 ? (
+                                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                                            {course.classNames.map((className) => (
+                                                                                <span
+                                                                                    key={className}
+                                                                                    style={{
+                                                                                        background: '#ebf8ff',
+                                                                                        color: '#2b6cb0',
+                                                                                        padding: '4px 10px',
+                                                                                        borderRadius: '16px',
+                                                                                        fontSize: '13px',
+                                                                                        fontWeight: '500',
+                                                                                        border: '1px solid #bee3f8'
+                                                                                    }}
+                                                                                >
+                                                                                    {className}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span style={{ fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}>No classes assigned</span>
+                                                                    )}
+                                                                </div>
+
+                                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="edit-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            startEditingCourse(course);
+                                                                        }}
+                                                                        style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="delete-button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setCourseToDelete(course);
+                                                                        }}
+                                                                        style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        )}
                     </div>
                 )}
             </section>
@@ -1413,6 +1927,42 @@ function AdminDashboard({currentUser, onLogout}) {
                                     setClassToDelete(null)
                                 }
                                 disabled={deletingClass}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {courseToDelete && (
+                <div className="modal-overlay">
+                    <div className="confirm-modal">
+                        <h3>Delete Course</h3>
+
+                        <p>
+                            Are you sure you want to delete{" "}
+                            <strong>{courseToDelete.name}</strong>?
+                        </p>
+
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                className="delete-button"
+                                onClick={handleDeleteCourse}
+                                disabled={deletingCourse}
+                            >
+                                {deletingCourse
+                                    ? "Deleting..."
+                                    : "Yes, Delete"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setCourseToDelete(null)
+                                }
+                                disabled={deletingCourse}
                             >
                                 Cancel
                             </button>

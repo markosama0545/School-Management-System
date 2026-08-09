@@ -118,4 +118,52 @@ public class UserBehavior {
             );
         }
     }
+
+    public boolean canViewCourse(Long userId) {
+        return hasRight(userId, "CanViewCourse");
+    }
+
+    public boolean canAddCourse(Long userId) {
+        return hasRight(userId, "CanAddCourse");
+    }
+
+    public boolean canEditCourse(Long userId) {
+        return hasRight(userId, "CanEditCourse");
+    }
+
+    public boolean canDeleteCourse(Long userId) {
+        return hasRight(userId, "CanDeleteCourse");
+    }
+
+    public void requireCanViewCourse(Long userId) {
+        if (!canViewCourse(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to view courses"
+            );
+        }
+    }
+
+    public void requireCanAddCourse(Long userId) {
+        if (!canAddCourse(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to add courses"
+            );
+        }
+    }
+
+    public void requireCanEditCourse(Long userId) {
+        if (!canEditCourse(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to edit courses"
+            );
+        }
+    }
+
+    public void requireCanDeleteCourse(Long userId) {
+        if (!canDeleteCourse(userId)) {
+            throw new AccessDeniedException(
+                    "You do not have permission to delete courses"
+            );
+        }
+    }
 }
