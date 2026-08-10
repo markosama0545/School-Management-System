@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { getStudentDashboard } from "../api/studentApi";
+import Header from "../components/Header";
+import StatCard from "../components/StatCard";
+import {
+    BookOpen,
+    Users,
+    TrendingUp,
+    UserRound,
+    GraduationCap,
+} from "lucide-react";
 
 function StudentDashboard({ currentUser, onLogout }) {
     const [dashboard, setDashboard] = useState(null);
@@ -19,77 +28,185 @@ function StudentDashboard({ currentUser, onLogout }) {
         }
     }
 
+    /* ── Error state ────────────────────────────────────────── */
     if (error) {
         return (
-            <main className="app">
-                <p>{error}</p>
-                <button onClick={onLogout}>Logout</button>
-            </main>
+            <>
+                <Header currentUser={currentUser} onLogout={onLogout} />
+                <main className="dashboard-content">
+                    <p className="error-message">{error}</p>
+                </main>
+            </>
         );
     }
 
+    /* ── Loading state ──────────────────────────────────────── */
     if (!dashboard) {
         return (
-            <main className="app">
-                <p>Loading...</p>
-            </main>
+            <>
+                <Header currentUser={currentUser} onLogout={onLogout} />
+                <main className="dashboard-content">
+                    <p className="student-loading">Loading dashboard…</p>
+                </main>
+            </>
         );
     }
 
+    /* ── Derived statistics ─────────────────────────────────── */
+    const totalCourses = dashboard.courses.length;
+    const totalClassmates = dashboard.classmates.length;
+
+    const numericGrades = dashboard.courses
+        .map((c) => c.grade)
+        .filter((g) => g != null && !Number.isNaN(Number(g)));
+
+    const averageGrade =
+        numericGrades.length > 0
+            ? (
+                  numericGrades.reduce((sum, g) => sum + Number(g), 0) /
+                  numericGrades.length
+              ).toFixed(1)
+            : null;
+
+    /* ── Main render ────────────────────────────────────────── */
     return (
-        <main className="app">
-            <div className="dashboard-header">
-                <div>
-                    <h1>Welcome, {dashboard.name}</h1>
-                    <p>Student ID: {dashboard.studentId}</p>
-                    <p>Class: {dashboard.className}</p>
+        <>
+            <Header currentUser={currentUser} onLogout={onLogout} />
+            <main className="dashboard-content">
+
+                {/* ── Welcome / identity area ── */}
+                <div className="student-welcome-area">
+                    <div className="student-welcome-text">
+                        <h2 className="student-welcome-heading">
+                            Welcome back, {dashboard.name}
+                        </h2>
+                        <p className="student-welcome-sub">
+                            Here's an overview of your classes and academic progress.
+                        </p>
+                    </div>
+                    <div className="student-identity-chips">
+                        <span className="student-identity-chip">
+                            <UserRound size={13} strokeWidth={2} />
+                            ID&nbsp;{dashboard.studentId}
+                        </span>
+                        <span className="student-identity-chip">
+                            <GraduationCap size={13} strokeWidth={2} />
+                            {dashboard.className}
+                        </span>
+                    </div>
                 </div>
 
-                <button onClick={onLogout}>
-                    Logout
-                </button>
-            </div>
+                {/* ── Summary stats ── */}
+                <div className="admin-summary-grid student-stats-grid">
+                    <StatCard
+                        icon={BookOpen}
+                        label="My Courses"
+                        count={totalCourses}
+                    />
+                    <StatCard
+                        icon={Users}
+                        label="Classmates"
+                        count={totalClassmates}
+                    />
+                    <StatCard
+                        icon={TrendingUp}
+                        label="Average Grade"
+                        count={averageGrade ?? "—"}
+                    />
+                </div>
 
-            <section className="dashboard-section">
-                <h2>Classmates</h2>
+                {/* ── Main two-column layout ── */}
+                <div className="student-main-grid">
 
-                {dashboard.classmates.length === 0 ? (
-                    <p>No classmates found.</p>
-                ) : (
-                    <ul>
-                        {dashboard.classmates.map((classmate) => (
-                            <li key={classmate}>
-                                {classmate}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+                    {/* ── Academic Performance ── */}
+                    <section className="student-section">
+                        <div className="student-section-header">
+                            <BookOpen size={18} strokeWidth={1.75} />
+                            <h3>Academic Performance</h3>
+                        </div>
 
-            <section className="dashboard-section">
-                <h2>Courses and Grades</h2>
+                        {dashboard.courses.length === 0 ? (
+                            <p className="student-empty-note">
+                                No courses are currently assigned.
+                            </p>
+                        ) : (
+                            <div className="student-table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Teacher</th>
+                                            <th>Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dashboard.courses.map((course) => (
+                                            <tr key={course.courseName}>
+                                                <td className="student-course-name">
+                                                    {course.courseName}
+                                                </td>
+                                                <td className="student-teacher-name">
+                                                    {course.teacherName}
+                                                </td>
+                                                <td>
+                                                    {course.grade != null ? (
+                                                        <span className="student-grade-badge">
+                                                            {course.grade}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="student-grade-null">
+                                                            Not graded
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
 
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Course</th>
-                        <th>Teacher</th>
-                        <th>Grade</th>
-                    </tr>
-                    </thead>
+                    {/* ── My Class ── */}
+                    <section className="student-section student-class-section">
+                        <div className="student-section-header">
+                            <Users size={18} strokeWidth={1.75} />
+                            <h3>My Class</h3>
+                        </div>
 
-                    <tbody>
-                    {dashboard.courses.map((course) => (
-                        <tr key={course.courseName}>
-                            <td>{course.courseName}</td>
-                            <td>{course.teacherName}</td>
-                            <td>{course.grade}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </section>
-        </main>
+                        <p className="student-class-name-display">
+                            {dashboard.className}
+                        </p>
+
+                        {dashboard.classmates.length === 0 ? (
+                            <p className="student-empty-note">
+                                No classmates found.
+                            </p>
+                        ) : (
+                            <ul className="student-classmates-list">
+                                {dashboard.classmates.map((classmate) => (
+                                    <li
+                                        key={classmate}
+                                        className="student-classmate-row"
+                                    >
+                                        <span className="student-classmate-avatar">
+                                            <UserRound
+                                                size={15}
+                                                strokeWidth={1.75}
+                                            />
+                                        </span>
+                                        <span className="student-classmate-name">
+                                            {classmate}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+
+                </div>
+            </main>
+        </>
     );
 }
 

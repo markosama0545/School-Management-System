@@ -1,4 +1,18 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import Header from "../components/Header";
+import StatCard from "../components/StatCard";
+import ConfirmationModal from "../components/ConfirmationModal";
+import {
+    Users,
+    GraduationCap,
+    School,
+    BookOpen,
+    ChevronDown,
+    Plus,
+    X,
+    Trash2,
+    Edit2
+} from "lucide-react";
 
 
 import {
@@ -26,7 +40,7 @@ import {
     deleteCourse
 } from "../api/courseApi";
 
-function AdminDashboard({currentUser, onLogout}) {
+function AdminDashboard({ currentUser, onLogout }) {
     const [openSection, setOpenSection] = useState(null);
     const [students, setStudents] = useState([]);
     const [studentsLoading, setStudentsLoading] = useState(false);
@@ -105,6 +119,9 @@ function AdminDashboard({currentUser, onLogout}) {
     const [expandedCourseId, setExpandedCourseId] = useState(null);
 
 
+
+
+
     useEffect(() => {
         if (openSection === "students") {
             loadStudents();
@@ -125,6 +142,22 @@ function AdminDashboard({currentUser, onLogout}) {
             loadClasses();
         }
     }, [openSection]);
+
+
+
+
+    useEffect(() => {
+        async function loadDashboardSummary() {
+            await Promise.all([
+                loadStudents(),
+                loadTeachers(),
+                loadClasses(),
+                loadCourses()
+            ]);
+        }
+
+        loadDashboardSummary();
+    }, []);
 
 
     async function loadStudents() {
@@ -215,7 +248,7 @@ function AdminDashboard({currentUser, onLogout}) {
 
 
     function handleNewStudentChange(event) {
-        const {name, value} = event.target;
+        const { name, value } = event.target;
 
         setNewStudent((currentStudent) => ({
             ...currentStudent,
@@ -791,1186 +824,1123 @@ function AdminDashboard({currentUser, onLogout}) {
 
 
 
+    const studentCount = studentsLoading ? '…' : studentsError ? '—' : students.length;
+    const teacherCount = teachersLoading ? '…' : teachersError ? '—' : teachers.length;
+    const classCount = classesLoading ? '…' : classesError ? '—' : classes.length;
+    const courseCount = coursesLoading ? '…' : coursesError ? '—' : courses.length;
+
+
     return (
-        <main className="app">
-            <div className="dashboard-header">
-                <div>
-                    <h1>Welcome, {currentUser.username}</h1>
-                    <p>Role: {currentUser.roleName}</p>
+        <>
+            <Header currentUser={currentUser} onLogout={onLogout} />
+            <main className="dashboard-content">
+                <div className="dashboard-title-area">
+                    <h2>Admin Dashboard</h2>
+                    <p className="dashboard-subtitle">INNUVA School Management System</p>
                 </div>
 
-                <button onClick={onLogout}>
-                    Logout
-                </button>
-            </div>
+                {/* Summary cards */}
+                <div className="admin-summary-grid">
+                    <StatCard icon={Users} label="Students" count={studentCount} />
+                    <StatCard icon={GraduationCap} label="Teachers" count={teacherCount} />
+                    <StatCard icon={School} label="Classes" count={classCount} />
+                    <StatCard icon={BookOpen} label="Courses" count={courseCount} />
+                </div>
 
-            <h2>Admin Dashboard</h2>
+                <section className="admin-card">
+                    <button
+                        className={`admin-card-button ${openSection === "students" ? "admin-card-button-open" : ""}`}
+                        onClick={() => toggleSection("students")}
+                    >
+                        <span className="admin-card-button-title">
+                            <Users size={20} className="admin-card-button-icon" />
+                            Students Management
+                        </span>
+                        <ChevronDown size={20} className="admin-card-chevron" />
+                    </button>
 
-            <section className="admin-card">
-                <button
-                    className="admin-card-button"
-                    onClick={() => toggleSection("students")}
-                >
-                    <span>Students Management</span>
+                    {openSection === "students" && (
+                        <div className="admin-card-content">
+                            {studentsLoading ? (
+                                <p>Loading students...</p>
+                            ) : studentsError ? (
+                                <p className="error-message">{studentsError}</p>
+                            ) : students.length === 0 ? (
+                                <p>No students found.</p>
+                            ) : (
+                                <>
+                                    {studentSuccessMessage && (
+                                        <p className="success-message">
+                                            {studentSuccessMessage}
+                                        </p>
+                                    )}
 
-                    <span>
-                        {openSection === "students" ? "▲" : "▼"}
-                    </span>
-                </button>
+                                    <button
+                                        type="button"
+                                        className="add-student-button"
+                                        onClick={() => {
+                                            setShowAddStudentForm((currentValue) => {
+                                                const willOpen = !currentValue;
+                                                if (willOpen) {
+                                                    setOpenClassName(null);
+                                                }
+                                                return willOpen;
+                                            });
+                                        }}
+                                    >
+                                        {showAddStudentForm ? (
+                                            <>
+                                                <X size={16} /> Close Form
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus size={16} /> Add Student
+                                            </>
+                                        )}
+                                    </button>
 
-                {openSection === "students" && (
-                    <div className="admin-card-content">
-                        {studentsLoading ? (
-                            <p>Loading students...</p>
-                        ) : studentsError ? (
-                            <p>{studentsError}</p>
-                        ) : students.length === 0 ? (
-                            <p>No students found.</p>
-                        ) : (
-                            <>
+                                    {showAddStudentForm && (
+                                        <div className="add-student-form">
+                                            <h3>Add New Student</h3>
+                                            <div className="form-grid">
+                                                <div className="form-field">
+                                                    <label>Student Name</label>
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        value={newStudent.name}
+                                                        onChange={handleNewStudentChange}
+                                                        placeholder="Enter full name"
+                                                    />
+                                                </div>
 
-                                {studentSuccessMessage && (
-                                    <p className="success-message">
-                                        {studentSuccessMessage}
-                                    </p>
+                                                <div className="form-field">
+                                                    <label>Username</label>
+                                                    <input
+                                                        type="text"
+                                                        name="username"
+                                                        value={newStudent.username}
+                                                        onChange={handleNewStudentChange}
+                                                        placeholder="Enter login username"
+                                                    />
+                                                </div>
+
+                                                <div className="form-field">
+                                                    <label>Password</label>
+                                                    <input
+                                                        type="password"
+                                                        name="password"
+                                                        value={newStudent.password}
+                                                        onChange={handleNewStudentChange}
+                                                        placeholder="Enter secure password"
+                                                    />
+                                                </div>
+
+                                                <div className="form-field">
+                                                    <label>Class</label>
+                                                    <select
+                                                        name="classId"
+                                                        value={newStudent.classId}
+                                                        onChange={handleNewStudentChange}
+                                                    >
+                                                        <option value="">Select class</option>
+                                                        <option value="1">Class A</option>
+                                                        <option value="2">Class B</option>
+                                                        <option value="3">Class C</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="form-actions">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddStudent}
+                                                    disabled={addingStudent}
+                                                >
+                                                    {addingStudent ? "Saving..." : "Save Student"}
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className="cancel-button"
+                                                    onClick={resetStudentForm}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {Object.entries(studentsByClass).map(
+                                        ([className, classStudents]) => (
+                                            <div
+                                                className="class-group"
+                                                key={className}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="class-accordion-button"
+                                                    onClick={() => toggleClass(className)}
+                                                >
+                                                    <span>{className}</span>
+
+                                                    <span>
+                                                        {openClassName === className
+                                                            ? "▲"
+                                                            : "▼"}
+                                                    </span>
+                                                </button>
+
+
+
+
+
+
+                                                {openClassName === className && (
+                                                    <table className="students-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No.</th>
+                                                                <th>Student Name</th>
+                                                                <th>Class</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                        </thead>
+
+
+
+
+                                                        <tbody>
+                                                            {[...classStudents]
+                                                                .sort((a, b) =>
+                                                                    a.name.localeCompare(b.name)
+                                                                )
+                                                                .map((student, index) => (
+                                                                    <tr key={student.id}>
+                                                                        <td>{index + 1}</td>
+
+                                                                        <td>
+                                                                            {editingStudentId === student.id ? (
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={editingStudent.name}
+                                                                                    onChange={(event) =>
+                                                                                        setEditingStudent((current) => ({
+                                                                                            ...current,
+                                                                                            name: event.target.value
+                                                                                        }))
+                                                                                    }
+                                                                                />
+                                                                            ) : (
+                                                                                student.name
+                                                                            )}
+                                                                        </td>
+
+                                                                        <td>
+                                                                            {editingStudentId === student.id ? (
+                                                                                <select
+                                                                                    value={editingStudent.classId}
+                                                                                    onChange={(event) =>
+                                                                                        setEditingStudent((current) => ({
+                                                                                            ...current,
+                                                                                            classId: event.target.value
+                                                                                        }))
+                                                                                    }
+                                                                                >
+                                                                                    <option value="1">Class A</option>
+                                                                                    <option value="2">Class B</option>
+                                                                                    <option value="3">Class C</option>
+                                                                                </select>
+                                                                            ) : (
+                                                                                student.className
+                                                                            )}
+                                                                        </td>
+
+                                                                        <td className="student-actions">
+                                                                            {editingStudentId === student.id ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={savingEdit}
+                                                                                        onClick={() =>
+                                                                                            handleSaveStudentEdit(student.id)
+                                                                                        }
+                                                                                    >
+                                                                                        {savingEdit ? "Saving..." : "Save"}
+                                                                                    </button>
+
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setEditingStudentId(null);
+
+                                                                                            setEditingStudent({
+                                                                                                name: "",
+                                                                                                classId: ""
+                                                                                            });
+                                                                                        }}
+                                                                                    >
+                                                                                        Cancel
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        className="edit-button"
+                                                                                        onClick={() =>
+                                                                                            startEditingStudent(student)
+                                                                                        }
+                                                                                    >
+                                                                                        Edit
+                                                                                    </button>
+
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        className="delete-button"
+                                                                                        onClick={() => setStudentToDelete(student)}
+                                                                                    >
+                                                                                        Delete
+                                                                                    </button>
+                                                                                </>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                        </tbody>
+                                                    </table>
+                                                )}
+                                            </div>
+                                        )
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                <section className="admin-card">
+                    <button
+                        className={`admin-card-button ${openSection === "teachers" ? "admin-card-button-open" : ""}`}
+                        onClick={() => toggleSection("teachers")}
+                    >
+                        <span className="admin-card-button-title">
+                            <GraduationCap size={20} className="admin-card-button-icon" />
+                            Teachers Management
+                        </span>
+                        <ChevronDown size={20} className="admin-card-chevron" />
+                    </button>
+
+                    {openSection === "teachers" && (
+                        <div className="admin-card-content">
+
+                            {teacherSuccessMessage && (
+                                <p className="success-message">
+                                    {teacherSuccessMessage}
+                                </p>
+                            )}
+
+                            <button
+                                type="button"
+                                className="add-student-button"
+                                onClick={() =>
+                                    setShowAddTeacherForm(
+                                        (currentValue) => !currentValue
+                                    )
+                                }
+                            >
+                                {showAddTeacherForm ? (
+                                    <>
+                                        <X size={16} /> Close Form
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus size={16} /> Add Teacher
+                                    </>
                                 )}
+                            </button>
 
-                                <button
-                                    type="button"
-                                    className="add-student-button"
-                                    onClick={() => {
-                                        setShowAddStudentForm((currentValue) => {
-                                            const willOpen = !currentValue;
-
-                                            if (willOpen) {
-                                                setOpenClassName(null);
-                                            }
-
-                                            return willOpen;
-                                        });
-                                    }}
-                                >
-                                    {showAddStudentForm
-                                        ? "Close Add Student Form"
-                                        : "+ Add Student"}
-                                </button>
-
-                                {showAddStudentForm && (
-                                    <div className="add-student-form">
-                                        <h3>Add New Student</h3>
-
-                                        <label>
-                                            Student Name
+                            {showAddTeacherForm && (
+                                <div className="add-student-form">
+                                    <h3>Add New Teacher</h3>
+                                    <div className="form-grid">
+                                        <div className="form-field">
+                                            <label>Teacher Name</label>
                                             <input
                                                 type="text"
                                                 name="name"
-                                                value={newStudent.name}
-                                                onChange={handleNewStudentChange}
+                                                value={newTeacher.name}
+                                                onChange={handleNewTeacherChange}
+                                                placeholder="Enter teacher's name"
                                             />
-                                        </label>
+                                        </div>
 
-                                        <label>
-                                            Username
+                                        <div className="form-field">
+                                            <label>Phone</label>
+                                            <input
+                                                type="text"
+                                                name="phone"
+                                                value={newTeacher.phone}
+                                                onChange={handleNewTeacherChange}
+                                                placeholder="Enter phone number"
+                                            />
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label>Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={newTeacher.email}
+                                                onChange={handleNewTeacherChange}
+                                                placeholder="Enter email address"
+                                            />
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label>Username</label>
                                             <input
                                                 type="text"
                                                 name="username"
-                                                value={newStudent.username}
-                                                onChange={handleNewStudentChange}
+                                                value={newTeacher.username}
+                                                onChange={handleNewTeacherChange}
+                                                placeholder="Enter login username"
                                             />
-                                        </label>
+                                        </div>
 
-                                        <label>
-                                            Password
+                                        <div className="form-field">
+                                            <label>Password</label>
                                             <input
                                                 type="password"
                                                 name="password"
-                                                value={newStudent.password}
-                                                onChange={handleNewStudentChange}
+                                                value={newTeacher.password}
+                                                onChange={handleNewTeacherChange}
+                                                placeholder="Enter password"
                                             />
-                                        </label>
-
-                                        <label>
-                                            Class
-                                            <select
-                                                name="classId"
-                                                value={newStudent.classId}
-                                                onChange={handleNewStudentChange}
-                                            >
-                                                <option value="">Select class</option>
-                                                <option value="1">Class A</option>
-                                                <option value="2">Class B</option>
-                                                <option value="3">Class C</option>
-                                            </select>
-                                        </label>
-
-                                        <div className="form-actions">
-                                            <button
-                                                type="button"
-                                                onClick={handleAddStudent}
-                                                disabled={addingStudent}
-                                            >
-                                                {addingStudent
-                                                    ? "Saving..."
-                                                    : "Save Student"}
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={resetStudentForm}
-                                            >
-                                                Cancel
-                                            </button>
                                         </div>
                                     </div>
-                                )}
 
-                                {Object.entries(studentsByClass).map(
-                                    ([className, classStudents]) => (
-                                        <div
-                                            className="class-group"
-                                            key={className}
+                                    <div className="form-actions">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddTeacher}
+                                            disabled={addingTeacher}
                                         >
-                                            <button
-                                                type="button"
-                                                className="class-accordion-button"
-                                                onClick={() => toggleClass(className)}
-                                            >
-                                                <span>{className}</span>
+                                            {addingTeacher ? "Saving..." : "Save Teacher"}
+                                        </button>
 
-                                                <span>
-                                                    {openClassName === className
-                                                        ? "▲"
-                                                        : "▼"}
-                                                </span>
-                                            </button>
-
-
-
-
-
-
-                                            {openClassName === className && (
-                                                <table className="students-table">
-                                                    <thead>
-                                                    <tr>
-                                                        <th>No.</th>
-                                                        <th>Student Name</th>
-                                                        <th>Class</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                    </thead>
-
-
-
-
-                                                    <tbody>
-                                                    {[...classStudents]
-                                                        .sort((a, b) =>
-                                                            a.name.localeCompare(b.name)
-                                                        )
-                                                        .map((student, index) => (
-                                                            <tr key={student.id}>
-                                                                <td>{index + 1}</td>
-
-                                                                <td>
-                                                                    {editingStudentId === student.id ? (
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editingStudent.name}
-                                                                            onChange={(event) =>
-                                                                                setEditingStudent((current) => ({
-                                                                                    ...current,
-                                                                                    name: event.target.value
-                                                                                }))
-                                                                            }
-                                                                        />
-                                                                    ) : (
-                                                                        student.name
-                                                                    )}
-                                                                </td>
-
-                                                                <td>
-                                                                    {editingStudentId === student.id ? (
-                                                                        <select
-                                                                            value={editingStudent.classId}
-                                                                            onChange={(event) =>
-                                                                                setEditingStudent((current) => ({
-                                                                                    ...current,
-                                                                                    classId: event.target.value
-                                                                                }))
-                                                                            }
-                                                                        >
-                                                                            <option value="1">Class A</option>
-                                                                            <option value="2">Class B</option>
-                                                                            <option value="3">Class C</option>
-                                                                        </select>
-                                                                    ) : (
-                                                                        student.className
-                                                                    )}
-                                                                </td>
-
-                                                                <td className="student-actions">
-                                                                    {editingStudentId === student.id ? (
-                                                                        <>
-                                                                            <button
-                                                                                type="button"
-                                                                                disabled={savingEdit}
-                                                                                onClick={() =>
-                                                                                    handleSaveStudentEdit(student.id)
-                                                                                }
-                                                                            >
-                                                                                {savingEdit ? "Saving..." : "Save"}
-                                                                            </button>
-
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => {
-                                                                                    setEditingStudentId(null);
-
-                                                                                    setEditingStudent({
-                                                                                        name: "",
-                                                                                        classId: ""
-                                                                                    });
-                                                                                }}
-                                                                            >
-                                                                                Cancel
-                                                                            </button>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <button
-                                                                                type="button"
-                                                                                className="edit-button"
-                                                                                onClick={() =>
-                                                                                    startEditingStudent(student)
-                                                                                }
-                                                                            >
-                                                                                Edit
-                                                                            </button>
-
-                                                                            <button
-                                                                                type="button"
-                                                                                className="delete-button"
-                                                                                onClick={() => setStudentToDelete(student)}
-                                                                            >
-                                                                                Delete
-                                                                            </button>
-                                                                        </>
-                                                                    )}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            )}
-                                        </div>
-                                    )
-                                )}
-                            </>
-                        )}
-                    </div>
-                )}
-            </section>
-
-            <section className="admin-card">
-                <button
-                    className="admin-card-button"
-                    onClick={() => toggleSection("teachers")}
-                >
-                    <span>Teachers Management</span>
-                    <span>
-            {openSection === "teachers" ? "▲" : "▼"}
-        </span>
-                </button>
-
-                {openSection === "teachers" && (
-                    <div className="admin-card-content">
-
-                        {teacherSuccessMessage && (
-                            <p className="success-message">
-                                {teacherSuccessMessage}
-                            </p>
-                        )}
-
-                        <button
-                            type="button"
-                            className="add-student-button"
-                            onClick={() =>
-                                setShowAddTeacherForm(
-                                    (currentValue) => !currentValue
-                                )
-                            }
-                        >
-                            {showAddTeacherForm
-                                ? "Close Add Teacher Form"
-                                : "+ Add Teacher"}
-                        </button>
-
-                        {showAddTeacherForm && (
-                            <div className="add-student-form">
-                                <h3>Add New Teacher</h3>
-
-                                <label>
-                                    Teacher Name
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={newTeacher.name}
-                                        onChange={handleNewTeacherChange}
-                                    />
-                                </label>
-
-                                <label>
-                                    Phone
-                                    <input
-                                        type="text"
-                                        name="phone"
-                                        value={newTeacher.phone}
-                                        onChange={handleNewTeacherChange}
-                                    />
-                                </label>
-
-                                <label>
-                                    Email
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={newTeacher.email}
-                                        onChange={handleNewTeacherChange}
-                                    />
-                                </label>
-
-                                <label>
-                                    Username
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        value={newTeacher.username}
-                                        onChange={handleNewTeacherChange}
-                                    />
-                                </label>
-
-                                <label>
-                                    Password
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        value={newTeacher.password}
-                                        onChange={handleNewTeacherChange}
-                                    />
-                                </label>
-
-                                <div className="form-actions"><button
-                                    type="button"
-                                    onClick={handleAddTeacher}
-                                    disabled={addingTeacher}
-                                >
-                                    {addingTeacher
-                                        ? "Saving..."
-                                        : "Save Teacher"}
-                                </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={resetTeacherForm}
-                                    >
-                                        Cancel
-                                    </button>
+                                        <button
+                                            type="button"
+                                            className="cancel-button"
+                                            onClick={resetTeacherForm}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {teachersLoading ? (
-                            <p>Loading teachers...</p>
-                        ) : teachersError ? (
-                            <p>{teachersError}</p>
-                        ) : teachers.length === 0 ? (
-                            <p>No teachers found.</p>
-                        ) : (
-                            <table className="students-table">
-                                <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Teacher Name</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>Actions</th>
-                                </tr>
-                                </thead>
-
-                                <tbody>
-                                {[...teachers]
-                                    .sort((a, b) =>
-                                        a.name.localeCompare(b.name)
-                                    )
-                                    .map((teacher, index) => (
-                                        <tr key={teacher.id}>
-                                            <td>{index + 1}</td>
-                                            <td>
-                                                {editingTeacherId === teacher.id ? (
-                                                    <input
-                                                        type="text"
-                                                        value={editingTeacher.name}
-                                                        onChange={(event) =>
-                                                            setEditingTeacher((current) => ({
-                                                                ...current,
-                                                                name: event.target.value
-                                                            }))
-                                                        }
-                                                    />
-                                                ) : (
-                                                    teacher.name
-                                                )}
-                                            </td>
-
-                                            <td>
-                                                {editingTeacherId === teacher.id ? (
-                                                    <input
-                                                        type="text"
-                                                        value={editingTeacher.phone}
-                                                        onChange={(event) =>
-                                                            setEditingTeacher((current) => ({
-                                                                ...current,
-                                                                phone: event.target.value
-                                                            }))
-                                                        }
-                                                    />
-                                                ) : (
-                                                    teacher.phone
-                                                )}
-                                            </td>
-
-                                            <td>
-                                                {editingTeacherId === teacher.id ? (
-                                                    <input
-                                                        type="email"
-                                                        value={editingTeacher.email}
-                                                        onChange={(event) =>
-                                                            setEditingTeacher((current) => ({
-                                                                ...current,
-                                                                email: event.target.value
-                                                            }))
-                                                        }
-                                                    />
-                                                ) : (
-                                                    teacher.email
-                                                )}
-                                            </td>
-
-                                            <td className="student-actions">
-                                                {editingTeacherId === teacher.id ? (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            disabled={savingTeacherEdit}
-                                                            onClick={() =>
-                                                                handleSaveTeacherEdit(teacher.id)
-                                                            }
-                                                        >
-                                                            {savingTeacherEdit
-                                                                ? "Saving..."
-                                                                : "Save"}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setEditingTeacherId(null);
-
-                                                                setEditingTeacher({
-                                                                    name: "",
-                                                                    phone: "",
-                                                                    email: ""
-                                                                });
-                                                            }}
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            className="edit-button"
-                                                            onClick={() =>
-                                                                startEditingTeacher(teacher)
-                                                            }
-                                                        >
-                                                            Edit
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="delete-button"
-                                                            onClick={() => setTeacherToDelete(teacher)}
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
+                            {teachersLoading ? (
+                                <p>Loading teachers...</p>
+                            ) : teachersError ? (
+                                <p>{teachersError}</p>
+                            ) : teachers.length === 0 ? (
+                                <p>No teachers found.</p>
+                            ) : (
+                                <table className="students-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Teacher Name</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                )}
-            </section>
+                                    </thead>
 
-            <section className="admin-card">
-                <button
-                    className="admin-card-button"
-                    onClick={() => toggleSection("classes")}
-                >
-                    <span>Classes Management</span>
-                    <span>{openSection === "classes" ? "▲" : "▼"}</span>
-                </button>
-
-                {openSection === "classes" && (
-                    <div className="admin-card-content">
-                        {classSuccessMessage && (
-                            <p className="success-message">
-                                {classSuccessMessage}
-                            </p>
-                        )}
-
-                        <button
-                            type="button"
-                            className="add-student-button"
-                            onClick={() => {
-                                setShowAddClassForm((currentValue) => !currentValue);
-                            }}
-                        >
-                            {showAddClassForm
-                                ? "Close Add Class Form"
-                                : "+ Add Class"}
-                        </button>
-
-                        {showAddClassForm && (
-                            <div className="add-student-form">
-                                <h3>Add New Class</h3>
-
-                                <label>
-                                    Class Name
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={newClass.name}
-                                        onChange={(e) => setNewClass({ name: e.target.value })}
-                                    />
-                                </label>
-
-                                <div className="form-actions">
-                                    <button
-                                        type="button"
-                                        onClick={handleAddClass}
-                                        disabled={addingClass}
-                                    >
-                                        {addingClass ? "Saving..." : "Save Class"}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={resetClassForm}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {classesLoading ? (
-                            <p>Loading classes...</p>
-                        ) : classesError ? (
-                            <p>{classesError}</p>
-                        ) : classes.length === 0 ? (
-                            <p>No classes found.</p>
-                        ) : (
-                            <table className="students-table">
-                                <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Class Name</th>
-                                    <th>Actions</th>
-                                </tr>
-                                </thead>
-
-                                <tbody>
-                                {[...classes]
-                                    .sort((a, b) => a.name.localeCompare(b.name))
-                                    .map((cls, index) => (
-                                        <tr key={cls.id}>
-                                            <td>{index + 1}</td>
-                                            <td>
-                                                {editingClassId === cls.id ? (
-                                                    <input
-                                                        type="text"
-                                                        value={editingClass.name}
-                                                        onChange={(event) =>
-                                                            setEditingClass({
-                                                                name: event.target.value
-                                                            })
-                                                        }
-                                                    />
-                                                ) : (
-                                                    cls.name
-                                                )}
-                                            </td>
-
-                                            <td className="student-actions">
-                                                {editingClassId === cls.id ? (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            disabled={savingClassEdit}
-                                                            onClick={() => handleSaveClassEdit(cls.id)}
-                                                        >
-                                                            {savingClassEdit ? "Saving..." : "Save"}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setEditingClassId(null);
-                                                                setEditingClass({ name: "" });
-                                                            }}
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            className="edit-button"
-                                                            onClick={() => startEditingClass(cls)}
-                                                        >
-                                                            Edit
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="delete-button"
-                                                            onClick={() => setClassToDelete(cls)}
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                )}
-            </section>
-
-            <section className="admin-card">
-                <button
-                    className="admin-card-button"
-                    onClick={() => toggleSection("courses")}
-                >
-                    <span>Courses Management</span>
-                    <span>{openSection === "courses" ? "▲" : "▼"}</span>
-                </button>
-
-                {openSection === "courses" && (
-                    <div className="admin-card-content">
-
-                        {courseSuccessMessage && (
-                            <p className="success-message">
-                                {courseSuccessMessage}
-                            </p>
-                        )}
-
-                        <button
-                            type="button"
-                            className="add-student-button"
-                            onClick={() => {
-                                setShowAddCourseForm((current) => {
-                                    const next = !current;
-                                    if (next) {
-                                        setExpandedCourseId(null);
-                                    }
-                                    return next;
-                                });
-                            }}
-                        >
-                            {showAddCourseForm
-                                ? "Close Add Course Form"
-                                : "+ Add Course"}
-                        </button>
-
-                        {showAddCourseForm && (
-                            <div className="add-student-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <h3>Add New Course</h3>
-
-                                <label style={{ display: 'block', fontWeight: 'bold' }}>
-                                    Course Name
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={newCourse.name}
-                                        onChange={(e) =>
-                                            setNewCourse((c) => ({ ...c, name: e.target.value }))
-                                        }
-                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px' }}
-                                    />
-                                </label>
-
-                                <label style={{ display: 'block', fontWeight: 'bold' }}>
-                                    Teacher
-                                    <select
-                                        value={newCourse.teacherId}
-                                        onChange={(e) =>
-                                            setNewCourse((c) => ({ ...c, teacherId: e.target.value }))
-                                        }
-                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px' }}
-                                    >
-                                        <option value="" disabled>Select Teacher</option>
+                                    <tbody>
                                         {[...teachers]
-                                            .sort((a, b) => a.name.localeCompare(b.name))
-                                            .map((t) => (
-                                                <option key={t.id} value={t.id}>{t.name}</option>
-                                            ))}
-                                    </select>
-                                </label>
+                                            .sort((a, b) =>
+                                                a.name.localeCompare(b.name)
+                                            )
+                                            .map((teacher, index) => (
+                                                <tr key={teacher.id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        {editingTeacherId === teacher.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={editingTeacher.name}
+                                                                onChange={(event) =>
+                                                                    setEditingTeacher((current) => ({
+                                                                        ...current,
+                                                                        name: event.target.value
+                                                                    }))
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            teacher.name
+                                                        )}
+                                                    </td>
 
-                                {classes.length > 0 && (
-                                    <div>
-                                        <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Assign Classes</p>
-                                        <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                                            gap: '12px',
-                                            marginTop: '8px'
-                                        }}>
-                                            {[...classes]
-                                                .sort((a, b) => a.name.localeCompare(b.name))
-                                                .map((cls) => (
-                                                    <label
-                                                        key={cls.id}
-                                                        style={{
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            gap: "8px",
-                                                            fontWeight: "normal",
-                                                            cursor: 'pointer',
-                                                            userSelect: 'none'
-                                                        }}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={newCourse.classIds.includes(cls.id)}
-                                                            onChange={(e) =>
-                                                                toggleCourseClassId(cls.id, e.target.checked, setNewCourse)
-                                                            }
-                                                            style={{ margin: 0 }}
-                                                        />
-                                                        <span style={{ lineHeight: '1' }}>{cls.name}</span>
-                                                    </label>
-                                                ))}
+                                                    <td>
+                                                        {editingTeacherId === teacher.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={editingTeacher.phone}
+                                                                onChange={(event) =>
+                                                                    setEditingTeacher((current) => ({
+                                                                        ...current,
+                                                                        phone: event.target.value
+                                                                    }))
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            teacher.phone
+                                                        )}
+                                                    </td>
+
+                                                    <td>
+                                                        {editingTeacherId === teacher.id ? (
+                                                            <input
+                                                                type="email"
+                                                                value={editingTeacher.email}
+                                                                onChange={(event) =>
+                                                                    setEditingTeacher((current) => ({
+                                                                        ...current,
+                                                                        email: event.target.value
+                                                                    }))
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            teacher.email
+                                                        )}
+                                                    </td>
+
+                                                    <td className="student-actions">
+                                                        {editingTeacherId === teacher.id ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={savingTeacherEdit}
+                                                                    onClick={() =>
+                                                                        handleSaveTeacherEdit(teacher.id)
+                                                                    }
+                                                                >
+                                                                    {savingTeacherEdit
+                                                                        ? "Saving..."
+                                                                        : "Save"}
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setEditingTeacherId(null);
+
+                                                                        setEditingTeacher({
+                                                                            name: "",
+                                                                            phone: "",
+                                                                            email: ""
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    className="edit-button"
+                                                                    onClick={() =>
+                                                                        startEditingTeacher(teacher)
+                                                                    }
+                                                                >
+                                                                    Edit
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="delete-button"
+                                                                    onClick={() => setTeacherToDelete(teacher)}
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                <section className="admin-card">
+                    <button
+                        className={`admin-card-button ${openSection === "classes" ? "admin-card-button-open" : ""}`}
+                        onClick={() => toggleSection("classes")}
+                    >
+                        <span className="admin-card-button-title">
+                            <School size={20} className="admin-card-button-icon" />
+                            Classes Management
+                        </span>
+                        <ChevronDown size={20} className="admin-card-chevron" />
+                    </button>
+
+                    {openSection === "classes" && (
+                        <div className="admin-card-content">
+                            {classSuccessMessage && (
+                                <p className="success-message">
+                                    {classSuccessMessage}
+                                </p>
+                            )}
+
+                            <button
+                                type="button"
+                                className="add-student-button"
+                                onClick={() => {
+                                    setShowAddClassForm((currentValue) => !currentValue);
+                                }}
+                            >
+                                {showAddClassForm ? (
+                                    <>
+                                        <X size={16} /> Close Form
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus size={16} /> Add Class
+                                    </>
+                                )}
+                            </button>
+
+                            {showAddClassForm && (
+                                <div className="add-student-form">
+                                    <h3>Add New Class</h3>
+                                    <div className="form-grid">
+                                        <div className="form-field">
+                                            <label>Class Name</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value={newClass.name}
+                                                onChange={(e) => setNewClass({ name: e.target.value })}
+                                                placeholder="Enter class name (e.g. Class D)"
+                                            />
                                         </div>
                                     </div>
-                                )}
 
-                                <div className="form-actions" style={{ marginTop: '8px' }}>
-                                    <button
-                                        type="button"
-                                        onClick={handleAddCourse}
-                                        disabled={addingCourse}
-                                    >
-                                        {addingCourse ? "Saving..." : "Save Course"}
-                                    </button>
+                                    <div className="form-actions">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddClass}
+                                            disabled={addingClass}
+                                        >
+                                            {addingClass ? "Saving..." : "Save Class"}
+                                        </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={resetCourseForm}
-                                        style={{ border: '1px solid #777777', background: 'transparent' }}
-                                    >
-                                        Cancel
-                                    </button>
+                                        <button
+                                            type="button"
+                                            className="cancel-button"
+                                            onClick={resetClassForm}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {coursesLoading ? (
-                            <p>Loading courses...</p>
-                        ) : coursesError ? (
-                            <p>{coursesError}</p>
-                        ) : courses.length === 0 ? (
-                            <p>No courses found.</p>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                                {[...courses]
-                                    .sort((a, b) => a.name.localeCompare(b.name))
-                                    .map((course) => {
-                                        const isExpanded = expandedCourseId === course.id;
-                                        const isEditing = editingCourseId === course.id;
+                            {classesLoading ? (
+                                <p>Loading classes...</p>
+                            ) : classesError ? (
+                                <p>{classesError}</p>
+                            ) : classes.length === 0 ? (
+                                <p>No classes found.</p>
+                            ) : (
+                                <table className="students-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Class Name</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
 
-                                        return (
-                                            <div
-                                                key={course.id}
-                                                style={{
-                                                    border: '1px solid #d8dce3',
-                                                    borderRadius: '8px',
-                                                    background: '#ffffff',
-                                                    overflow: 'hidden',
-                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                                                }}
+                                    <tbody>
+                                        {[...classes]
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map((cls, index) => (
+                                                <tr key={cls.id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        {editingClassId === cls.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={editingClass.name}
+                                                                onChange={(event) =>
+                                                                    setEditingClass({
+                                                                        name: event.target.value
+                                                                    })
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            cls.name
+                                                        )}
+                                                    </td>
+
+                                                    <td className="student-actions">
+                                                        {editingClassId === cls.id ? (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={savingClassEdit}
+                                                                    onClick={() => handleSaveClassEdit(cls.id)}
+                                                                >
+                                                                    {savingClassEdit ? "Saving..." : "Save"}
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setEditingClassId(null);
+                                                                        setEditingClass({ name: "" });
+                                                                    }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    className="edit-button"
+                                                                    onClick={() => startEditingClass(cls)}
+                                                                >
+                                                                    Edit
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="delete-button"
+                                                                    onClick={() => setClassToDelete(cls)}
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                <section className="admin-card">
+                    <button
+                        className={`admin-card-button ${openSection === "courses" ? "admin-card-button-open" : ""}`}
+                        onClick={() => toggleSection("courses")}
+                    >
+                        <span className="admin-card-button-title">
+                            <BookOpen size={20} className="admin-card-button-icon" />
+                            Courses Management
+                        </span>
+                        <ChevronDown size={20} className="admin-card-chevron" />
+                    </button>
+
+                    {openSection === "courses" && (
+                        <div className="admin-card-content">
+                            {courseSuccessMessage && (
+                                <p className="success-message">
+                                    {courseSuccessMessage}
+                                </p>
+                            )}
+
+                            <button
+                                type="button"
+                                className="add-student-button"
+                                onClick={() => {
+                                    setShowAddCourseForm((current) => {
+                                        const next = !current;
+                                        if (next) {
+                                            setExpandedCourseId(null);
+                                        }
+                                        return next;
+                                    });
+                                }}
+                            >
+                                {showAddCourseForm ? (
+                                    <>
+                                        <X size={16} /> Close Form
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus size={16} /> Add Course
+                                    </>
+                                )}
+                            </button>
+
+                            {showAddCourseForm && (
+                                <div className="add-student-form">
+                                    <h3>Add New Course</h3>
+                                    <div className="form-grid">
+                                        <div className="form-field">
+                                            <label>Course Name</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value={newCourse.name}
+                                                onChange={(e) =>
+                                                    setNewCourse((c) => ({ ...c, name: e.target.value }))
+                                                }
+                                                placeholder="Enter course name"
+                                            />
+                                        </div>
+
+                                        <div className="form-field">
+                                            <label>Teacher</label>
+                                            <select
+                                                value={newCourse.teacherId}
+                                                onChange={(e) =>
+                                                    setNewCourse((c) => ({ ...c, teacherId: e.target.value }))
+                                                }
                                             >
-                                                {/* Collapsible Header */}
+                                                <option value="" disabled>Select Teacher</option>
+                                                {[...teachers]
+                                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                                    .map((t) => (
+                                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                                    ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {classes.length > 0 && (
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <p style={{ margin: "0 0 10px 0", fontWeight: "600", fontSize: '13px', color: 'var(--text-secondary)' }}>Assign Classes</p>
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                                                gap: '12px',
+                                                marginTop: '8px'
+                                            }}>
+                                                {[...classes]
+                                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                                    .map((cls) => (
+                                                        <label
+                                                            key={cls.id}
+                                                            style={{
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "8px",
+                                                                fontWeight: "normal",
+                                                                cursor: 'pointer',
+                                                                userSelect: 'none'
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={newCourse.classIds.includes(cls.id)}
+                                                                onChange={(e) =>
+                                                                    toggleCourseClassId(cls.id, e.target.checked, setNewCourse)
+                                                                }
+                                                                style={{ margin: 0, width: 'auto' }}
+                                                            />
+                                                            <span style={{ lineHeight: '1' }}>{cls.name}</span>
+                                                        </label>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="form-actions">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddCourse}
+                                            disabled={addingCourse}
+                                        >
+                                            {addingCourse ? "Saving..." : "Save Course"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="cancel-button"
+                                            onClick={resetCourseForm}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {coursesLoading ? (
+                                <p>Loading courses...</p>
+                            ) : coursesError ? (
+                                <p>{coursesError}</p>
+                            ) : courses.length === 0 ? (
+                                <p>No courses found.</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                                    {[...courses]
+                                        .sort((a, b) => a.name.localeCompare(b.name))
+                                        .map((course) => {
+                                            const isExpanded = expandedCourseId === course.id;
+                                            const isEditing = editingCourseId === course.id;
+
+                                            return (
                                                 <div
-                                                    onClick={() => {
-                                                        setExpandedCourseId((prev) => {
-                                                            const next = (prev === course.id ? null : course.id);
-                                                            if (next !== null) setShowAddCourseForm(false);
-                                                            return next;
-                                                        });
-                                                    }}
+                                                    key={course.id}
                                                     style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        padding: '16px',
-                                                        cursor: 'pointer',
-                                                        background: isExpanded ? '#f8fafc' : '#ffffff',
-                                                        transition: 'background-color 0.2s ease',
-                                                        borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none'
+                                                        border: '1px solid #d8dce3',
+                                                        borderRadius: '8px',
+                                                        background: '#ffffff',
+                                                        overflow: 'hidden',
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                                                     }}
                                                 >
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                        <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a202c' }}>{course.name}</span>
-                                                        <span style={{ fontSize: '14px', color: '#4a5568' }}>Teacher: {course.teacherName || "—"}</span>
+                                                    {/* Collapsible Header */}
+                                                    <div
+                                                        onClick={() => {
+                                                            setExpandedCourseId((prev) => {
+                                                                const next = (prev === course.id ? null : course.id);
+                                                                if (next !== null) setShowAddCourseForm(false);
+                                                                return next;
+                                                            });
+                                                        }}
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            padding: '16px',
+                                                            cursor: 'pointer',
+                                                            background: isExpanded ? '#f8fafc' : '#ffffff',
+                                                            transition: 'background-color 0.2s ease',
+                                                            borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1a202c' }}>{course.name}</span>
+                                                            <span style={{ fontSize: '14px', color: '#4a5568' }}>Teacher: {course.teacherName || "—"}</span>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                            <span style={{
+                                                                fontSize: '13px',
+                                                                background: '#edf2f7',
+                                                                color: '#4a5568',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '16px',
+                                                                fontWeight: '500'
+                                                            }}>
+                                                                {course.classNames ? course.classNames.length : 0} Class{(course.classNames && course.classNames.length === 1) ? '' : 'es'}
+                                                            </span>
+                                                            <span style={{ fontSize: '16px', color: '#a0aec0', fontWeight: 'bold', userSelect: 'none' }}>
+                                                                {isExpanded ? '▲' : '▼'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <span style={{
-                                                            fontSize: '13px',
-                                                            background: '#edf2f7',
-                                                            color: '#4a5568',
-                                                            padding: '4px 10px',
-                                                            borderRadius: '16px',
-                                                            fontWeight: '500'
-                                                        }}>
-                                                            {course.classNames ? course.classNames.length : 0} Class{(course.classNames && course.classNames.length === 1) ? '' : 'es'}
-                                                        </span>
-                                                        <span style={{ fontSize: '16px', color: '#a0aec0', fontWeight: 'bold', userSelect: 'none' }}>
-                                                            {isExpanded ? '▲' : '▼'}
-                                                        </span>
-                                                    </div>
-                                                </div>
 
-                                                {/* Collapsible Body */}
-                                                {isExpanded && (
-                                                    <div style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
-                                                        {isEditing ? (
-                                                            /* Redesigned Edit Form Inside Accordion Card */
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                                <label style={{ display: 'block', fontWeight: 'bold' }}>
-                                                                    Course Name
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editingCourse.name}
-                                                                        onChange={(e) =>
-                                                                            setEditingCourse((c) => ({ ...c, name: e.target.value }))
-                                                                        }
-                                                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
-                                                                    />
-                                                                </label>
+                                                    {/* Collapsible Body */}
+                                                    {isExpanded && (
+                                                        <div style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                                                            {isEditing ? (
+                                                                /* Redesigned Edit Form Inside Accordion Card */
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                                    <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                                                        Course Name
+                                                                        <input
+                                                                            type="text"
+                                                                            value={editingCourse.name}
+                                                                            onChange={(e) =>
+                                                                                setEditingCourse((c) => ({ ...c, name: e.target.value }))
+                                                                            }
+                                                                            style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
+                                                                        />
+                                                                    </label>
 
-                                                                <label style={{ display: 'block', fontWeight: 'bold' }}>
-                                                                    Teacher
-                                                                    <select
-                                                                        value={editingCourse.teacherId}
-                                                                        onChange={(e) =>
-                                                                            setEditingCourse((c) => ({ ...c, teacherId: e.target.value }))
-                                                                        }
-                                                                        style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
-                                                                    >
-                                                                        <option value="" disabled>Select Teacher</option>
-                                                                        {[...teachers]
-                                                                            .sort((a, b) => a.name.localeCompare(b.name))
-                                                                            .map((t) => (
-                                                                                <option key={t.id} value={t.id}>{t.name}</option>
-                                                                            ))}
-                                                                    </select>
-                                                                </label>
-
-                                                                {classes.length > 0 && (
-                                                                    <div>
-                                                                        <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Assign Classes</p>
-                                                                        <div style={{
-                                                                            display: 'grid',
-                                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                                                                            gap: '12px',
-                                                                            marginTop: '8px'
-                                                                        }}>
-                                                                            {[...classes]
+                                                                    <label style={{ display: 'block', fontWeight: 'bold' }}>
+                                                                        Teacher
+                                                                        <select
+                                                                            value={editingCourse.teacherId}
+                                                                            onChange={(e) =>
+                                                                                setEditingCourse((c) => ({ ...c, teacherId: e.target.value }))
+                                                                            }
+                                                                            style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px' }}
+                                                                        >
+                                                                            <option value="" disabled>Select Teacher</option>
+                                                                            {[...teachers]
                                                                                 .sort((a, b) => a.name.localeCompare(b.name))
-                                                                                .map((cls) => (
-                                                                                    <label
-                                                                                        key={cls.id}
+                                                                                .map((t) => (
+                                                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                                                ))}
+                                                                        </select>
+                                                                    </label>
+
+                                                                    {classes.length > 0 && (
+                                                                        <div>
+                                                                            <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Assign Classes</p>
+                                                                            <div style={{
+                                                                                display: 'grid',
+                                                                                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                                                                                gap: '12px',
+                                                                                marginTop: '8px'
+                                                                            }}>
+                                                                                {[...classes]
+                                                                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                                                                    .map((cls) => (
+                                                                                        <label
+                                                                                            key={cls.id}
+                                                                                            style={{
+                                                                                                display: "flex",
+                                                                                                alignItems: "center",
+                                                                                                gap: "8px",
+                                                                                                fontWeight: "normal",
+                                                                                                cursor: 'pointer',
+                                                                                                userSelect: 'none'
+                                                                                            }}
+                                                                                        >
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                checked={editingCourse.classIds.includes(cls.id)}
+                                                                                                onChange={(e) =>
+                                                                                                    toggleCourseClassId(cls.id, e.target.checked, setEditingCourse)
+                                                                                                }
+                                                                                                style={{ margin: 0 }}
+                                                                                            />
+                                                                                            <span style={{ lineHeight: '1' }}>{cls.name}</span>
+                                                                                        </label>
+                                                                                    ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className="form-actions" style={{ marginTop: '8px' }}>
+                                                                        <button
+                                                                            type="button"
+                                                                            disabled={savingCourseEdit}
+                                                                            onClick={() => handleSaveCourseEdit(course.id)}
+                                                                        >
+                                                                            {savingCourseEdit ? "Saving..." : "Save"}
+                                                                        </button>
+
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setEditingCourseId(null);
+                                                                                setEditingCourse({ name: "", teacherId: "", classIds: [] });
+                                                                            }}
+                                                                            style={{ border: '1px solid #777777', background: 'transparent' }}
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                /* Read Mode inside Collapsible Card */
+                                                                <div>
+                                                                    <div style={{ marginBottom: '16px' }}>
+                                                                        <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#4a5568', fontSize: '14px' }}>Assigned Classes</p>
+                                                                        {course.classNames && course.classNames.length > 0 ? (
+                                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                                                {course.classNames.map((className) => (
+                                                                                    <span
+                                                                                        key={className}
                                                                                         style={{
-                                                                                            display: "flex",
-                                                                                            alignItems: "center",
-                                                                                            gap: "8px",
-                                                                                            fontWeight: "normal",
-                                                                                            cursor: 'pointer',
-                                                                                            userSelect: 'none'
+                                                                                            background: '#ebf8ff',
+                                                                                            color: '#2b6cb0',
+                                                                                            padding: '4px 10px',
+                                                                                            borderRadius: '16px',
+                                                                                            fontSize: '13px',
+                                                                                            fontWeight: '500',
+                                                                                            border: '1px solid #bee3f8'
                                                                                         }}
                                                                                     >
-                                                                                        <input
-                                                                                            type="checkbox"
-                                                                                            checked={editingCourse.classIds.includes(cls.id)}
-                                                                                            onChange={(e) =>
-                                                                                                toggleCourseClassId(cls.id, e.target.checked, setEditingCourse)
-                                                                                            }
-                                                                                            style={{ margin: 0 }}
-                                                                                        />
-                                                                                        <span style={{ lineHeight: '1' }}>{cls.name}</span>
-                                                                                    </label>
+                                                                                        {className}
+                                                                                    </span>
                                                                                 ))}
-                                                                        </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span style={{ fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}>No classes assigned</span>
+                                                                        )}
                                                                     </div>
-                                                                )}
 
-                                                                <div className="form-actions" style={{ marginTop: '8px' }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        disabled={savingCourseEdit}
-                                                                        onClick={() => handleSaveCourseEdit(course.id)}
-                                                                    >
-                                                                        {savingCourseEdit ? "Saving..." : "Save"}
-                                                                    </button>
+                                                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="edit-button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                startEditingCourse(course);
+                                                                            }}
+                                                                            style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
+                                                                        >
+                                                                            Edit
+                                                                        </button>
 
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            setEditingCourseId(null);
-                                                                            setEditingCourse({ name: "", teacherId: "", classIds: [] });
-                                                                        }}
-                                                                        style={{ border: '1px solid #777777', background: 'transparent' }}
-                                                                    >
-                                                                        Cancel
-                                                                    </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="delete-button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setCourseToDelete(course);
+                                                                            }}
+                                                                            style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ) : (
-                                                            /* Read Mode inside Collapsible Card */
-                                                            <div>
-                                                                <div style={{ marginBottom: '16px' }}>
-                                                                    <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#4a5568', fontSize: '14px' }}>Assigned Classes</p>
-                                                                    {course.classNames && course.classNames.length > 0 ? (
-                                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                                                            {course.classNames.map((className) => (
-                                                                                <span
-                                                                                    key={className}
-                                                                                    style={{
-                                                                                        background: '#ebf8ff',
-                                                                                        color: '#2b6cb0',
-                                                                                        padding: '4px 10px',
-                                                                                        borderRadius: '16px',
-                                                                                        fontSize: '13px',
-                                                                                        fontWeight: '500',
-                                                                                        border: '1px solid #bee3f8'
-                                                                                    }}
-                                                                                >
-                                                                                    {className}
-                                                                                </span>
-                                                                            ))}
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span style={{ fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}>No classes assigned</span>
-                                                                    )}
-                                                                </div>
-
-                                                                <div style={{ display: 'flex', gap: '10px' }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="edit-button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            startEditingCourse(course);
-                                                                        }}
-                                                                        style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
-                                                                    >
-                                                                        Edit
-                                                                    </button>
-
-                                                                    <button
-                                                                        type="button"
-                                                                        className="delete-button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setCourseToDelete(course);
-                                                                        }}
-                                                                        style={{ padding: '7px 14px', borderRadius: '6px', cursor: 'pointer' }}
-                                                                    >
-                                                                        Delete
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </section>
-            {studentToDelete && (
-                <div className="modal-overlay">
-                    <div className="confirm-modal">
-                        <h3>Delete Student</h3>
-
-                        <p>
-                            Are you sure you want to delete{" "}
-                            <strong>{studentToDelete.name}</strong>?
-                        </p>
-
-                        <div className="form-actions">
-                            <button
-                                type="button"
-                                className="delete-button"
-                                onClick={handleDeleteStudent}
-                                disabled={deletingStudent}
-                            >
-                                {deletingStudent
-                                    ? "Deleting..."
-                                    : "Yes, Delete"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setStudentToDelete(null)
-                                }
-                                disabled={deletingStudent}
-                            >
-                                Cancel
-                            </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </div>
-            )}
+                    )}
+                </section>
+                <ConfirmationModal
+                    isOpen={!!studentToDelete}
+                    title="Delete Student"
+                    message={<>Are you sure you want to delete <strong>{studentToDelete?.name}</strong>?</>}
+                    onConfirm={handleDeleteStudent}
+                    onCancel={() => setStudentToDelete(null)}
+                    isConfirming={deletingStudent}
+                />
 
-            {teacherToDelete && (
-                <div className="modal-overlay">
-                    <div className="confirm-modal">
+                <ConfirmationModal
+                    isOpen={!!teacherToDelete}
+                    title="Delete Teacher"
+                    message={<>Are you sure you want to delete <strong>{teacherToDelete?.name}</strong>?</>}
+                    onConfirm={handleDeleteTeacher}
+                    onCancel={() => setTeacherToDelete(null)}
+                    isConfirming={deletingTeacher}
+                />
 
-                        <h3>Delete Teacher</h3>
+                <ConfirmationModal
+                    isOpen={!!classToDelete}
+                    title="Delete Class"
+                    message={<>Are you sure you want to delete <strong>{classToDelete?.name}</strong>?</>}
+                    onConfirm={handleDeleteClass}
+                    onCancel={() => setClassToDelete(null)}
+                    isConfirming={deletingClass}
+                />
 
-                        <p>
-                            Are you sure you want to delete{" "}
-                            <strong>{teacherToDelete.name}</strong>?
-                        </p>
-
-                        <div className="form-actions">
-
-                            <button
-                                type="button"
-                                className="delete-button"
-                                onClick={handleDeleteTeacher}
-                                disabled={deletingTeacher}
-                            >
-                                {deletingTeacher
-                                    ? "Deleting..."
-                                    : "Yes, Delete"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setTeacherToDelete(null)
-                                }
-                                disabled={deletingTeacher}
-                            >
-                                Cancel
-                            </button>
-
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {classToDelete && (
-                <div className="modal-overlay">
-                    <div className="confirm-modal">
-                        <h3>Delete Class</h3>
-
-                        <p>
-                            Are you sure you want to delete{" "}
-                            <strong>{classToDelete.name}</strong>?
-                        </p>
-
-                        <div className="form-actions">
-                            <button
-                                type="button"
-                                className="delete-button"
-                                onClick={handleDeleteClass}
-                                disabled={deletingClass}
-                            >
-                                {deletingClass
-                                    ? "Deleting..."
-                                    : "Yes, Delete"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setClassToDelete(null)
-                                }
-                                disabled={deletingClass}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {courseToDelete && (
-                <div className="modal-overlay">
-                    <div className="confirm-modal">
-                        <h3>Delete Course</h3>
-
-                        <p>
-                            Are you sure you want to delete{" "}
-                            <strong>{courseToDelete.name}</strong>?
-                        </p>
-
-                        <div className="form-actions">
-                            <button
-                                type="button"
-                                className="delete-button"
-                                onClick={handleDeleteCourse}
-                                disabled={deletingCourse}
-                            >
-                                {deletingCourse
-                                    ? "Deleting..."
-                                    : "Yes, Delete"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setCourseToDelete(null)
-                                }
-                                disabled={deletingCourse}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </main>
+                <ConfirmationModal
+                    isOpen={!!courseToDelete}
+                    title="Delete Course"
+                    message={<>Are you sure you want to delete <strong>{courseToDelete?.name}</strong>?</>}
+                    onConfirm={handleDeleteCourse}
+                    onCancel={() => setCourseToDelete(null)}
+                    isConfirming={deletingCourse}
+                />
+            </main>
+        </>
     );
 }
 

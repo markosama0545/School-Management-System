@@ -3,6 +3,17 @@ import {
     getTeacherDashboard,
     updateGrade
 } from "../api/teacherApi";
+import Header from "../components/Header";
+import StatCard from "../components/StatCard";
+import {
+    BookOpen,
+    Users,
+    GraduationCap,
+    ChevronDown,
+    Pencil,
+    Check,
+    X,
+} from "lucide-react";
 
 function TeacherDashboard({ currentUser, onLogout }) {
     const [dashboard, setDashboard] = useState(null);
@@ -14,13 +25,9 @@ function TeacherDashboard({ currentUser, onLogout }) {
     const [openCourseId, setOpenCourseId] = useState(null);
     const [openClassKey, setOpenClassKey] = useState(null);
 
-
     async function loadDashboard() {
         try {
-            const data = await getTeacherDashboard(
-                currentUser.userId
-            );
-
+            const data = await getTeacherDashboard(currentUser.userId);
             setDashboard(data);
             setError("");
         } catch (error) {
@@ -37,10 +44,8 @@ function TeacherDashboard({ currentUser, onLogout }) {
         setSuccessMessage("");
         setEditingRow({
             studentId: student.studentId,
-            courseId: courseId
-
+            courseId: courseId,
         });
-
         setEditedGrade(student.grade ?? "");
     }
 
@@ -71,17 +76,14 @@ function TeacherDashboard({ currentUser, onLogout }) {
 
         try {
             setSaving(true);
-
             await updateGrade(
                 currentUser.userId,
                 student.studentId,
                 courseId,
                 gradeValue
             );
-
             await loadDashboard();
             setSuccessMessage("Grade updated successfully!");
-
             setEditingRow(null);
             setEditedGrade("");
         } catch (error) {
@@ -92,208 +94,315 @@ function TeacherDashboard({ currentUser, onLogout }) {
         }
     }
 
-    if (error) {
-        return (
-            <main className="app">
-                <p>{error}</p>
-                <button onClick={onLogout}>
-                    Logout
-                </button>
-            </main>
-        );
-    }
-
-    if (!dashboard) {
-        return <p>Loading...</p>;
-    }
-
     function toggleCourse(courseId) {
         setOpenCourseId((currentId) =>
             currentId === courseId ? null : courseId
         );
-
         setOpenClassKey(null);
     }
 
     function toggleClass(courseId, classId) {
         const classKey = `${courseId}-${classId}`;
-
         setOpenClassKey((currentKey) =>
             currentKey === classKey ? null : classKey
         );
     }
 
+    /* ── Derived stats ─────────────────────────────────────── */
+    const totalCourses  = dashboard ? dashboard.courses.length : 0;
+    const totalClasses  = dashboard
+        ? dashboard.courses.reduce((sum, c) => sum + c.classes.length, 0)
+        : 0;
+    const totalStudents = dashboard
+        ? dashboard.courses.reduce(
+              (sum, c) =>
+                  sum +
+                  c.classes.reduce(
+                      (s2, cl) => s2 + cl.students.length,
+                      0
+                  ),
+              0
+          )
+        : 0;
+
+    /* ── Error state ───────────────────────────────────────── */
+    if (error) {
+        return (
+            <>
+                <Header currentUser={currentUser} onLogout={onLogout} />
+                <main className="dashboard-content">
+                    <p className="error-message">{error}</p>
+                </main>
+            </>
+        );
+    }
+
+    /* ── Loading state ─────────────────────────────────────── */
+    if (!dashboard) {
+        return (
+            <>
+                <Header currentUser={currentUser} onLogout={onLogout} />
+                <main className="dashboard-content">
+                    <p className="teacher-loading">Loading dashboard…</p>
+                </main>
+            </>
+        );
+    }
+
+    /* ── Main render ───────────────────────────────────────── */
     return (
-        <main className="app">
-            <div className="dashboard-header">
-                <div>
-                    <h1>Welcome, {dashboard.teacherName}</h1>
-                    <p>Teacher ID: {dashboard.teacherId}</p>
+        <>
+            <Header currentUser={currentUser} onLogout={onLogout} />
+            <main className="dashboard-content">
+
+                {/* Page title */}
+                <div className="dashboard-title-area">
+                    <h2>Teacher Dashboard</h2>
+                    <p className="dashboard-subtitle">
+                        Manage your courses, classes and student grades.
+                    </p>
                 </div>
 
-                <button onClick={onLogout}>
-                    Logout
-                </button>
-            </div>
+                {/* Stats row */}
+                <div className="admin-summary-grid">
+                    <StatCard
+                        icon={BookOpen}
+                        label="My Courses"
+                        count={totalCourses}
+                    />
+                    <StatCard
+                        icon={GraduationCap}
+                        label="My Classes"
+                        count={totalClasses}
+                    />
+                    <StatCard
+                        icon={Users}
+                        label="Students Taught"
+                        count={totalStudents}
+                    />
+                </div>
 
-            {successMessage && (
-                <p className="success-message">
-                    {successMessage}
-                </p>
-            )}
+                {/* Success banner */}
+                {successMessage && (
+                    <p className="success-message">{successMessage}</p>
+                )}
 
-            {dashboard.courses.length === 0 ? (
-                <p>No courses assigned.</p>
-            ) : (
-                dashboard.courses.map((course) => (
-                    <section
-                        className="dashboard-section"
-                        key={course.courseId}
-                    >
+                {/* Course list */}
+                {dashboard.courses.length === 0 ? (
+                    <div className="teacher-empty">
+                        <BookOpen size={40} strokeWidth={1.2} />
+                        <p>No courses assigned yet.</p>
+                    </div>
+                ) : (
+                    <div className="teacher-courses-list">
+                        {dashboard.courses.map((course) => {
+                            const courseOpen = openCourseId === course.courseId;
 
-                        <button
-                            type="button"
-                            className="accordion-button course-button"
-                            onClick={() => toggleCourse(course.courseId)}
-                        >
-                            <span>{course.courseName}</span>
+                            return (
+                                <div
+                                    className="admin-card"
+                                    key={course.courseId}
+                                >
+                                    {/* Course accordion header */}
+                                    <button
+                                        type="button"
+                                        className={`admin-card-button${courseOpen ? " admin-card-button-open" : ""}`}
+                                        onClick={() =>
+                                            toggleCourse(course.courseId)
+                                        }
+                                    >
+                                        <span className="admin-card-button-title">
+                                            <span className="admin-card-button-icon">
+                                                <BookOpen size={18} strokeWidth={1.75} />
+                                            </span>
+                                            {course.courseName}
+                                            <span className="teacher-course-meta">
+                                                {course.classes.length}{" "}
+                                                {course.classes.length === 1
+                                                    ? "class"
+                                                    : "classes"}
+                                            </span>
+                                        </span>
+                                        <ChevronDown
+                                            size={18}
+                                            strokeWidth={2}
+                                            className="admin-card-chevron"
+                                        />
+                                    </button>
 
-                            <span>
-        {openCourseId === course.courseId ? "▲" : "▼"}
-    </span>
-                        </button>
+                                    {/* Course body */}
+                                    {courseOpen && (
+                                        <div className="admin-card-content">
+                                            {course.classes.map((schoolClass) => {
+                                                const classKey = `${course.courseId}-${schoolClass.classId}`;
+                                                const classIsOpen =
+                                                    openClassKey === classKey;
 
+                                                return (
+                                                    <div
+                                                        className="class-group"
+                                                        key={schoolClass.classId}
+                                                    >
+                                                        {/* Class accordion header */}
+                                                        <button
+                                                            type="button"
+                                                            className="class-accordion-button"
+                                                            onClick={() =>
+                                                                toggleClass(
+                                                                    course.courseId,
+                                                                    schoolClass.classId
+                                                                )
+                                                            }
+                                                        >
+                                                            <span className="teacher-class-label">
+                                                                <GraduationCap
+                                                                    size={15}
+                                                                    strokeWidth={1.75}
+                                                                    style={{ flexShrink: 0 }}
+                                                                />
+                                                                {schoolClass.className}
+                                                                <span className="teacher-student-badge">
+                                                                    {schoolClass.students.length}{" "}
+                                                                    {schoolClass.students.length === 1
+                                                                        ? "student"
+                                                                        : "students"}
+                                                                </span>
+                                                            </span>
+                                                            <ChevronDown
+                                                                size={15}
+                                                                strokeWidth={2}
+                                                                style={{
+                                                                    transition: "transform 0.2s",
+                                                                    transform: classIsOpen
+                                                                        ? "rotate(180deg)"
+                                                                        : "rotate(0deg)",
+                                                                    color: "var(--text-secondary)",
+                                                                }}
+                                                            />
+                                                        </button>
 
-                        {openCourseId === course.courseId && (
-                            <div className="course-content">
-                                {course.classes.map((schoolClass) => {
-                                    const classKey =
-                                        `${course.courseId}-${schoolClass.classId}`;
+                                                        {/* Class body — grade table */}
+                                                        {classIsOpen && (
+                                                            <>
+                                                                {schoolClass.students.length === 0 ? (
+                                                                    <p className="teacher-no-students">
+                                                                        No students enrolled in this class.
+                                                                    </p>
+                                                                ) : (
+                                                                    <table>
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Student ID</th>
+                                                                                <th>Name</th>
+                                                                                <th>Grade</th>
+                                                                                <th>Action</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {schoolClass.students.map(
+                                                                                (student) => (
+                                                                                    <tr key={student.studentId}>
+                                                                                        <td className="teacher-id-cell">
+                                                                                            #{student.studentId}
+                                                                                        </td>
 
-                                    const classIsOpen =
-                                        openClassKey === classKey;
+                                                                                        <td>{student.studentName}</td>
 
-                                    return (
-                                        <div
-                                            className="teacher-class"
-                                            key={schoolClass.classId}
-                                        >
-                                            <button
-                                                type="button"
-                                                className="accordion-button class-button"
-                                                onClick={() =>
-                                                    toggleClass(
-                                                        course.courseId,
-                                                        schoolClass.classId
-                                                    )
-                                                }
-                                            >
-                                                <span>{schoolClass.className}</span>
+                                                                                        <td>
+                                                                                            {isEditing(
+                                                                                                student.studentId,
+                                                                                                course.courseId
+                                                                                            ) ? (
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    min="0"
+                                                                                                    max="100"
+                                                                                                    value={editedGrade}
+                                                                                                    className="teacher-grade-input"
+                                                                                                    onChange={(e) =>
+                                                                                                        setEditedGrade(
+                                                                                                            e.target.value
+                                                                                                        )
+                                                                                                    }
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <span
+                                                                                                    className={
+                                                                                                        student.grade == null
+                                                                                                            ? "teacher-grade-null"
+                                                                                                            : "teacher-grade-value"
+                                                                                                    }
+                                                                                                >
+                                                                                                    {student.grade ?? "Not graded"}
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </td>
 
-                                                <span>
-                            {classIsOpen ? "▲" : "▼"}
-                        </span>
-                                            </button>
-
-                                            {classIsOpen && (
-                                                <>
-                                                    {schoolClass.students.length === 0 ? (
-                                                        <p>No students found.</p>
-                                                    ) : (
-                                                        <table>
-                                                            <thead>
-                                                            <tr>
-                                                                <th>Student ID</th>
-                                                                <th>Student Name</th>
-                                                                <th>Grade</th>
-                                                                <th>Action</th>
-                                                            </tr>
-                                                            </thead>
-
-                                                            <tbody>
-                                                            {schoolClass.students.map((student) => (
-                                                                <tr key={student.studentId}>
-                                                                    <td>{student.studentId}</td>
-
-                                                                    <td>{student.studentName}</td>
-
-                                                                    <td>
-                                                                        {isEditing(
-                                                                            student.studentId,
-                                                                            course.courseId
-                                                                        ) ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                min="0"
-                                                                                max="100"
-                                                                                value={editedGrade}
-                                                                                onChange={(event) =>
-                                                                                    setEditedGrade(
-                                                                                        event.target.value
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        ) : (
-                                                                            student.grade ?? "Not graded"
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td>
-                                                                        {isEditing(
-                                                                            student.studentId,
-                                                                            course.courseId
-                                                                        ) ? (
-                                                                            <>
-                                                                                <button
-                                                                                    disabled={saving}
-                                                                                    onClick={() =>
-                                                                                        saveGrade(
-                                                                                            student,
-                                                                                            course.courseId
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    {saving
-                                                                                        ? "Saving..."
-                                                                                        : "Save"}
-                                                                                </button>
-
-                                                                                <button
-                                                                                    disabled={saving}
-                                                                                    onClick={cancelEditing}
-                                                                                >
-                                                                                    Cancel
-                                                                                </button>
-                                                                            </>
-                                                                        ) : (
-                                                                            <button
-                                                                                onClick={() =>
-                                                                                    startEditing(
-                                                                                        student,
-                                                                                        course.courseId
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                Edit
-                                                                            </button>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                            </tbody>
-                                                        </table>
-                                                    )}
-                                                </>
-                                            )}
+                                                                                        <td>
+                                                                                            <div className="student-actions">
+                                                                                                {isEditing(
+                                                                                                    student.studentId,
+                                                                                                    course.courseId
+                                                                                                ) ? (
+                                                                                                    <>
+                                                                                                        <button
+                                                                                                            className="teacher-save-button"
+                                                                                                            disabled={saving}
+                                                                                                            onClick={() =>
+                                                                                                                saveGrade(
+                                                                                                                    student,
+                                                                                                                    course.courseId
+                                                                                                                )
+                                                                                                            }
+                                                                                                        >
+                                                                                                            <Check size={13} strokeWidth={2.5} />
+                                                                                                            {saving ? "Saving…" : "Save"}
+                                                                                                        </button>
+                                                                                                        <button
+                                                                                                            className="cancel-button"
+                                                                                                            disabled={saving}
+                                                                                                            onClick={cancelEditing}
+                                                                                                        >
+                                                                                                            <X size={13} strokeWidth={2.5} />
+                                                                                                            Cancel
+                                                                                                        </button>
+                                                                                                    </>
+                                                                                                ) : (
+                                                                                                    <button
+                                                                                                        className="edit-button"
+                                                                                                        onClick={() =>
+                                                                                                            startEditing(
+                                                                                                                student,
+                                                                                                                course.courseId
+                                                                                                            )
+                                                                                                        }
+                                                                                                    >
+                                                                                                        <Pencil size={13} strokeWidth={2} />
+                                                                                                        Edit Grade
+                                                                                                    </button>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                )
+                                                                            )}
+                                                                        </tbody>
+                                                                    </table>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </section>
-                ))
-            )}
-        </main>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </main>
+        </>
     );
 }
 
