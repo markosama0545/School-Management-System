@@ -303,8 +303,84 @@ Possible future improvements:
 
 ---
 
+## 🌐 Live Demo
+
+The School Management System is deployed and available online.
+
+**Live Application:**  
+https://ingenious-inspiration-production-cef4.up.railway.app
+
+The application is deployed using Railway and includes:
+
+- React frontend
+- Spring Boot REST API
+- MySQL database
+- Role-based access control
+- Server-side pagination for scalable data loading
+
+
+## 🔐 Demo Accounts
+
+You can explore the system using the following demo accounts:
+
+| Role | Username | Password |
+|------|----------|----------|
+| 👨‍🎓 Student | `mina` | `1234` |
+| 👨‍🏫 Teacher | `john rizk` | `1234` |
+| 👨‍💼 Admin | `mark osama` | `1234` |
+
+Each account demonstrates a different level of access based on the user's assigned role and permissions.
+
+
+## 👥 User Roles
+
+### Student
+Students can access their academic information, including their class and related course information.
+
+### Teacher
+Teachers can access their assigned courses and navigate through the classes associated with those courses.
+
+### Admin
+Administrators have access to the system's management features, including students, teachers, classes, and courses.
+
+
+## ⚡ Scalability
+
+The application is designed to avoid loading large amounts of data when a dashboard is opened.
+
+Instead:
+
+- Dashboard pages load lightweight summary information.
+- Detailed datasets are loaded only when the user navigates to the relevant section.
+- Large lists use server-side pagination.
+- The frontend requests only the data required for the current page.
+
+This approach improves performance and allows the system to handle larger datasets more efficiently.
+
+
+## 🚀 Deployment
+
+The application is deployed on Railway.
+
+**Frontend**
+- React
+- Vite
+
+**Backend**
+- Java
+- Spring Boot
+- REST API
+
+**Database**
+- MySQL
+
+The frontend communicates with the deployed backend API using an environment-based API URL.
+
+
 ## Author
 
 **Mark Osama**
 
 Internship project developed at INNUVA IT Solutions.
+
+
