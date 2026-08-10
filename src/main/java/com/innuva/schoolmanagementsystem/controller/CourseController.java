@@ -27,6 +27,19 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getAllCourses(userId));
     }
 
+    @GetMapping("/paged")
+    public ResponseEntity<com.innuva.schoolmanagementsystem.dto.PagedResponse<CourseResponse>> getCoursesPaged(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        return ResponseEntity.ok(
+                courseService.getCoursesPaged(userId, page, size, sortBy, direction)
+        );
+    }
+
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(
             @RequestHeader("X-User-Id") Long userId,

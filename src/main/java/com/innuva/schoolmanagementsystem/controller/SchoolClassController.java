@@ -42,6 +42,19 @@ public class SchoolClassController {
         );
     }
 
+    @GetMapping("/paged")
+    public ResponseEntity<com.innuva.schoolmanagementsystem.dto.PagedResponse<SchoolClassResponse>> getClassesPaged(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        return ResponseEntity.ok(
+                schoolClassService.getClassesPaged(userId, page, size, sortBy, direction)
+        );
+    }
+
     @PostMapping
     public ResponseEntity<SchoolClassResponse> createClass(
             @RequestHeader("X-User-Id") Long userId,

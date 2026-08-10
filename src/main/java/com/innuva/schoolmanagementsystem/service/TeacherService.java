@@ -36,6 +36,39 @@ public class TeacherService {
                 .toList();
     }
 
+    public com.innuva.schoolmanagementsystem.dto.PagedResponse<TeacherResponse> getTeachersPaged(
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        org.springframework.data.domain.Sort sort = direction.equalsIgnoreCase("desc")
+                ? org.springframework.data.domain.Sort.by(sortBy).descending()
+                : org.springframework.data.domain.Sort.by(sortBy).ascending();
+
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size, sort);
+
+        org.springframework.data.domain.Page<Teacher> teacherPage =
+                teacherRepository.findAll(pageable);
+
+        List<TeacherResponse> content = teacherPage
+                .getContent()
+                .stream()
+                .map(this::toTeacherResponse)
+                .toList();
+
+        return new com.innuva.schoolmanagementsystem.dto.PagedResponse<>(
+                content,
+                teacherPage.getNumber(),
+                teacherPage.getSize(),
+                teacherPage.getTotalElements(),
+                teacherPage.getTotalPages(),
+                teacherPage.isFirst(),
+                teacherPage.isLast()
+        );
+    }
+
     private TeacherResponse toTeacherResponse(
             Teacher teacher
     ) {

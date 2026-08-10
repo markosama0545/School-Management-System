@@ -1302,3 +1302,771 @@ tbody tr:hover {
         opacity: 0.6;
     }
 }
+
+/* =========================================================
+   SCALABILITY REFACTOR — NEW SHARED STYLES
+   ========================================================= */
+
+/* ---- Back button ---- */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: border-color 0.18s, color 0.18s;
+}
+.back-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ---- Page header ---- */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+}
+.page-header__left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ---- Management navigation cards ---- */
+.mgmt-nav-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.mgmt-nav-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.15s;
+}
+.mgmt-nav-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(255,107,43,0.12);
+    transform: translateY(-1px);
+}
+.mgmt-nav-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255,107,43,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+.mgmt-nav-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+.mgmt-nav-card__label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.mgmt-nav-card__desc {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.mgmt-nav-card__arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* ---- Management card wrapper ---- */
+.mgmt-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.mgmt-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+.mgmt-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ---- Search bar ---- */
+.search-bar {
+    margin-bottom: 1rem;
+}
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.search-input-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 420px;
+}
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.search-input {
+    width: 100%;
+    padding: 9px 36px 9px 36px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0;
+}
+
+/* ---- Data table ---- */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    background: rgba(0,0,0,0.03);
+    border-bottom: 1px solid var(--border);
+}
+.data-table td {
+    padding: 13px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+.data-table tbody tr:hover td {
+    background: rgba(255,107,43,0.03);
+}
+
+/* ---- Inline form controls inside table ---- */
+.form-input--inline {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    width: 100%;
+}
+.form-input--inline:focus { outline: none; border-color: var(--primary); }
+.form-select--inline {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* ---- Table action buttons ---- */
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+.icon-btn--edit:hover { border-color: #3b82f6; color: #3b82f6; }
+.icon-btn--delete:hover { border-color: #ef4444; color: #ef4444; }
+
+/* ---- Buttons ---- */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+}
+.btn-primary:hover { background: var(--primary-hover, #e05e20); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover { border-color: var(--text-muted); color: var(--text-primary); }
+.btn--sm { padding: 5px 12px; font-size: 13px; }
+
+/* ---- Form elements ---- */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #555);
+}
+.form-input, .form-select {
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+}
+.form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.form-error {
+    font-size: 13px;
+    color: #ef4444;
+    margin: 0;
+}
+
+/* ---- Checkbox group ---- */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.checkbox-group--compact { gap: 6px; }
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+/* ---- Alert success ---- */
+.alert-success {
+    background: rgba(34,197,94,0.12);
+    border: 1.5px solid rgba(34,197,94,0.35);
+    color: #16a34a;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 14px;
+    margin-bottom: 1rem;
+}
+
+/* ---- Loading / Error / Empty states ---- */
+.loading-state, .error-state, .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.error-state { color: #ef4444; }
+.loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Pagination ---- */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.pagination-info {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pagination-btn {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: border-color 0.15s, color 0.15s;
+}
+.pagination-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pagination-pages {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ---- Grade badges ---- */
+.grade-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.grade-badge--pass { background: rgba(34,197,94,0.15); color: #16a34a; }
+.grade-badge--fail { background: rgba(239,68,68,0.15); color: #dc2626; }
+.grade-badge--none { background: rgba(0,0,0,0.05); color: var(--text-muted); }
+
+/* ---- Teacher course cards ---- */
+.teacher-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.teacher-course-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.teacher-course-card__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    background: rgba(255,107,43,0.06);
+    border-bottom: 1px solid var(--border);
+    color: var(--primary);
+}
+.teacher-course-card__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+.teacher-course-card__classes {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.teacher-class-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+}
+.teacher-class-btn:hover { border-color: var(--primary); background: rgba(255,107,43,0.04); }
+.no-classes-note { font-size: 13px; color: var(--text-muted); padding: 8px 12px; margin: 0; }
+
+/* ---- Text button (e.g. expandable course name in table) ---- */
+.text-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.text-btn:hover { color: var(--primary); }
+.inline-list {
+    margin: 6px 0 0 0;
+    padding: 0 0 0 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ---- Stat pill (for average grade header badge) ---- */
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,107,43,0.1);
+    border: 1.5px solid rgba(255,107,43,0.25);
+    color: var(--primary);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    align-self: center;
+}
+
+/* ---- Responsive tweaks for new pages ---- */
+@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .search-form { flex-direction: column; align-items: stretch; }
+    .search-input-wrap { max-width: 100%; }
+    .teacher-courses-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   MISSING VARIABLE & UTILITY ALIASES
+   (--card-bg used in scalability-refactor styles but defined
+    under --bg-card in the original design system)
+   ============================================================ */
+:root {
+    --card-bg: var(--bg-card);
+}
+
+/* ---- Dashboard page shell ---- */
+.dashboard-page {
+    min-height: 100vh;
+    background: var(--bg-app);
+    display: flex;
+    flex-direction: column;
+    /* Stacking context: sit above body::before / body::after background layers */
+    position: relative;
+    z-index: 2;
+}
+
+/* ---- Page-level typography ---- */
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.page-subtitle {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    margin: 4px 0 0;
+}
+
+/* ---- Section heading inside dashboard ---- */
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 12px;
+}
+
+/* ---- Responsive Page Container/Layout widths ---- */
+.page-content {
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
+    box-sizing: border-box;
+}
+
+/* Admin management pages: max-width 1150-1300px */
+.page-content--mgmt {
+    max-width: 1250px;
+}
+
+/* Dashboard & multi-column grid pages: max-width 1300-1400px */
+.page-content--wide {
+    max-width: 1400px;
+}
+
+/* ============================================================
+   STUDENT CLASS PAGE — two-column composition
+   ============================================================ */
+.class-page-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ---- Left sidebar: Class Overview card ---- */
+.class-overview-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    /* Stick to top on scroll */
+    position: sticky;
+    top: 88px;
+}
+
+.class-overview-card__icon-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(243,112,33,0.15) 0%, rgba(243,112,33,0.06) 100%);
+    border: 2px solid rgba(243,112,33,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    margin-bottom: 16px;
+}
+
+.class-overview-card__name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.class-overview-card__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(243,112,33,0.08);
+    border: 1px solid rgba(243,112,33,0.2);
+    color: var(--primary);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.class-overview-card__divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0 16px;
+}
+
+.class-overview-card__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin: 0 0 4px;
+}
+
+.class-overview-card__value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ---- Right panel: Classmates card header ---- */
+.class-mates-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(243,112,33,0.03);
+}
+
+.class-mates-card__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.class-mates-card__count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+
+/* ---- Classmate avatar pill ---- */
+.classmate-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(243,112,33,0.08);
+    border: 1px solid rgba(243,112,33,0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* ---- Responsive: stack on tablet/mobile ---- */
+@media (max-width: 900px) {
+    .class-page-grid {
+        grid-template-columns: 1fr;
+    }
+    .class-overview-card {
+        position: static;
+        flex-direction: row;
+        text-align: left;
+        gap: 20px;
+        padding: 20px;
+    }
+    .class-overview-card__icon-wrap { margin-bottom: 0; flex-shrink: 0; }
+    .class-overview-card__divider { display: none; }
+    .class-overview-card__label,
+    .class-overview-card__value { display: none; }
+}
+
+/* ============================================================
+   TEACHER DASHBOARD — Overview List Rows
+   ============================================================ */
+.teacher-overview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.teacher-overview-row:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.teacher-overview-row__title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.teacher-overview-row__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(255, 107, 43, 0.08);
+    border: 1px solid rgba(255, 107, 43, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.teacher-overview-row__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 2px 0;
+}
+
+.teacher-overview-row__desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Responsive dashboard wrap */
+@media (max-width: 990px) {
+    .teacher-dashboard-layout {
+        grid-template-columns: 1fr !important;
+    }
+}

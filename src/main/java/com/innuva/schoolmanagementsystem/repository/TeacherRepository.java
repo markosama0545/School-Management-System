@@ -6,9 +6,40 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TeacherRepository
         extends JpaRepository<Teacher, Long> {
+
+    @Query("SELECT t FROM Teacher t WHERE t.user.id = :userId")
+    Optional<Teacher> findByUserId(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT co.Id)
+            FROM teachers t
+            JOIN courses co ON co.TeacherId = t.Id
+            WHERE t.UserId = :userId
+            """, nativeQuery = true)
+    long countCoursesByTeacherUserId(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT cc.ClassId)
+            FROM teachers t
+            JOIN courses co ON co.TeacherId = t.Id
+            JOIN classcourses cc ON cc.CourseId = co.Id
+            WHERE t.UserId = :userId
+            """, nativeQuery = true)
+    long countClassesByTeacherUserId(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT s.Id)
+            FROM teachers t
+            JOIN courses co ON co.TeacherId = t.Id
+            JOIN classcourses cc ON cc.CourseId = co.Id
+            JOIN students s ON s.ClassId = cc.ClassId
+            WHERE t.UserId = :userId
+            """, nativeQuery = true)
+    long countStudentsByTeacherUserId(@Param("userId") Long userId);
 
     @Query("""
 SELECT COUNT(c) > 0

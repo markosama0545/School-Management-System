@@ -30,6 +30,18 @@ public class TeacherController {
         );
     }
 
+    @GetMapping("/paged")
+    public ResponseEntity<com.innuva.schoolmanagementsystem.dto.PagedResponse<TeacherResponse>> getTeachersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        return ResponseEntity.ok(
+                teacherService.getTeachersPaged(page, size, sortBy, direction)
+        );
+    }
+
 
     @PostMapping("/with-account")
     public ResponseEntity<TeacherResponse> createTeacherWithAccount(

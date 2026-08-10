@@ -1,5 +1,5 @@
-// src/components/StatCard.jsx
-function StatCard({ icon: IconComponent, label, count }) {
+function StatCard({ icon: IconComponent, label, count, value }) {
+    const displayValue = value !== undefined ? value : count;
     return (
         <div className="admin-summary-card">
             <div className="admin-summary-icon-container">
@@ -7,7 +7,7 @@ function StatCard({ icon: IconComponent, label, count }) {
             </div>
             <div className="admin-summary-info">
                 <div className="admin-summary-label">{label}</div>
-                <div className="admin-summary-count">{count}</div>
+                <div className="admin-summary-count">{displayValue}</div>
             </div>
         </div>
     );

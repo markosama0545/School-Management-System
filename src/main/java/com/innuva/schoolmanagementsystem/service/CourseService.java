@@ -48,6 +48,42 @@ public class CourseService {
         return responses;
     }
 
+    public com.innuva.schoolmanagementsystem.dto.PagedResponse<CourseResponse> getCoursesPaged(
+            Long userId,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        userBehavior.requireCanViewCourse(userId);
+
+        org.springframework.data.domain.Sort sort = direction.equalsIgnoreCase("desc")
+                ? org.springframework.data.domain.Sort.by(sortBy).descending()
+                : org.springframework.data.domain.Sort.by(sortBy).ascending();
+
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size, sort);
+
+        org.springframework.data.domain.Page<Course> coursePage =
+                courseRepository.findAll(pageable);
+
+        List<CourseResponse> content = coursePage
+                .getContent()
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+
+        return new com.innuva.schoolmanagementsystem.dto.PagedResponse<>(
+                content,
+                coursePage.getNumber(),
+                coursePage.getSize(),
+                coursePage.getTotalElements(),
+                coursePage.getTotalPages(),
+                coursePage.isFirst(),
+                coursePage.isLast()
+        );
+    }
+
     @Transactional
     public CourseResponse createCourse(Long userId, CourseRequest request) {
         userBehavior.requireCanAddCourse(userId);

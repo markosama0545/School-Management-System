@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -52,4 +53,31 @@ ORDER BY c.name
 """)
     List<StudentCourseProjection> getCourses(Long studentId);
 
+    @Query("""
+SELECT new com.innuva.schoolmanagementsystem.dto.TeacherStudentInfo(
+    s.id,
+    s.name,
+    (SELECT g.gradeValue FROM Grade g WHERE g.student.id = s.id AND g.course.id = :courseId)
+)
+FROM Student s
+WHERE s.schoolClass.id = :classId
+""")
+    org.springframework.data.domain.Page<com.innuva.schoolmanagementsystem.dto.TeacherStudentInfo> findStudentsWithGradesByClassAndCourse(
+            @Param("classId") Long classId,
+            @Param("courseId") Long courseId,
+            org.springframework.data.domain.Pageable pageable
+    );
+
+    @Query("""
+SELECT s.name
+FROM Student s
+WHERE s.schoolClass.id = :classId
+AND s.id <> :studentId
+ORDER BY s.name
+""")
+    org.springframework.data.domain.Page<String> getClassmatesPaged(
+            @Param("classId") Long classId,
+            @Param("studentId") Long studentId,
+            org.springframework.data.domain.Pageable pageable
+    );
 }

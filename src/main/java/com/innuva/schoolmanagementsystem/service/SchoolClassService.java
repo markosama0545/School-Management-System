@@ -37,6 +37,42 @@ public class SchoolClassService {
                 .toList();
     }
 
+    public com.innuva.schoolmanagementsystem.dto.PagedResponse<SchoolClassResponse> getClassesPaged(
+            Long userId,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        userBehavior.requireCanViewClass(userId);
+
+        org.springframework.data.domain.Sort sort = direction.equalsIgnoreCase("desc")
+                ? org.springframework.data.domain.Sort.by(sortBy).descending()
+                : org.springframework.data.domain.Sort.by(sortBy).ascending();
+
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size, sort);
+
+        org.springframework.data.domain.Page<SchoolClass> classPage =
+                schoolClassRepository.findAll(pageable);
+
+        List<SchoolClassResponse> content = classPage
+                .getContent()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new com.innuva.schoolmanagementsystem.dto.PagedResponse<>(
+                content,
+                classPage.getNumber(),
+                classPage.getSize(),
+                classPage.getTotalElements(),
+                classPage.getTotalPages(),
+                classPage.isFirst(),
+                classPage.isLast()
+        );
+    }
+
     @Transactional
     public SchoolClassResponse createClass(Long userId, SchoolClassRequest request) {
         userBehavior.requireCanAddClass(userId);
